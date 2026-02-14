@@ -1,0 +1,15 @@
+[project]
+name = "yt-lib"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dataclasses>=0.8",
+    "logging>=0.4.9.6",
+    "pathlib>=1.0.1",
+    "typing>=3.10.0.0",
+    "whisper>=1.1.10",
+    "youtube-transcript-api>=1.2.4",
+    "yt-dlp>=2026.2.4",
+]
