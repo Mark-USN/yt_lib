@@ -1,7 +1,7 @@
 [project]
 name = "yt-lib"
 version = "0.1.0"
-description = "Add your description here"
+description = "library files for Youtube transcripts and search."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
