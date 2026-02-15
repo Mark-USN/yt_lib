@@ -1,24 +1,10 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
->>>>>>> 5d1a043f87763f0145dfb350578d90833c5f0517
-=======
->>>>>>> 5d1a043f87763f0145dfb350578d90833c5f0517
 [build-system]
 requires = ["hatchling>=1.26"]
 build-backend = "hatchling.build"
 
 [project]
 name = "yt-lib"
-<<<<<<< HEAD
 version = "0.2.0"
-=======
-version = "0.1.0"
-<<<<<<< HEAD
->>>>>>> 5d1a043f87763f0145dfb350578d90833c5f0517
-=======
->>>>>>> 5d1a043f87763f0145dfb350578d90833c5f0517
 description = "Library files for Youtube transcripts and search."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -29,7 +15,6 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-<<<<<<< HEAD
 packages = ["src/yt_lib"]
 
 [dependency-groups]
@@ -39,8 +24,3 @@ dev = [
   "pytest>=9.0.2",
   "ruff>=0.15.1",
 ]
-
-[tool.hatch.build.targets.wheel]
-=======
->>>>>>> 5d1a043f87763f0145dfb350578d90833c5f0517
-packages = ["lib"]
