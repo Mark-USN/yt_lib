@@ -1,15 +1,37 @@
+<<<<<<< HEAD
+
+=======
+>>>>>>> 5d1a043f87763f0145dfb350578d90833c5f0517
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
 [project]
 name = "yt-lib"
+<<<<<<< HEAD
+version = "0.2.0"
+=======
 version = "0.1.0"
-description = "Add your description here"
+>>>>>>> 5d1a043f87763f0145dfb350578d90833c5f0517
+description = "Library files for Youtube transcripts and search."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "dataclasses>=0.8",
-    "logging>=0.4.9.6",
-    "pathlib>=1.0.1",
-    "typing>=3.10.0.0",
-    "whisper>=1.1.10",
-    "youtube-transcript-api>=1.2.4",
-    "yt-dlp>=2026.2.4",
+  "youtube-transcript-api>=1.2.4",
+  "yt-dlp>=2026.2.4",
+  "openai-whisper",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yt_lib"]
+
+[dependency-groups]
+dev = [
+  "build>=1.4.0",
+  "pyright>=1.1.408",
+  "pytest>=9.0.2",
+  "ruff>=0.15.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["lib"]
