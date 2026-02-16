@@ -1,3 +1,5 @@
+"""Utilities for consistent logging across the project."""
+
 # src/lib/utils/log_utils.py
 from __future__ import annotations
 
@@ -229,7 +231,10 @@ def format_tree(
             title = d.get("title", "")
             pub = d.get("publishedAt", "")
             cnt = d.get("itemCount", "")
-            return f"playlist {pid!s} itemCount={cnt!s} title={_short(title)} publishedAt={_short(pub)}"
+            return (
+                f"playlist {pid!s} itemCount={cnt!s} title={_short(title)}"
+                f" publishedAt={_short(pub)}"
+            )
 
         if kind == "playlist#video":
             pid = d.get("playlistId", "")
@@ -429,7 +434,7 @@ def _normalize_name(name: str, *, root: str) -> str:
 
 
 def _parse_level(level: str) -> int:
-    try:
-        return logging._nameToLevel[level]  # noqa: SLF001 (fine here; stable mapping)
-    except Exception:  # pylint: disable=broad-exception-caught
-        return logging.INFO
+    value = logging.getLevelName(level.upper().strip())
+    if not isinstance(value, int):
+        raise ValueError(f"Invalid logging level: {level!r}")
+    return value
