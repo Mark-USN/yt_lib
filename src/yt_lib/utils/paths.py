@@ -28,7 +28,7 @@ class ProjectLayoutError(RuntimeError):
     """Raised when we cannot determine the project root from a file path."""
 
 
-def project_root_from_src(start: Path) -> Path:
+def project_root(start: Path) -> Path:
     """Return PARENT for a layout of PARENT/src/... by locating 'src' in parents.
 
     Args:
@@ -42,7 +42,7 @@ def project_root_from_src(start: Path) -> Path:
     """
     here = start.resolve()
     for p in (here, *here.parents):
-        if p.name == "src":
+        if p.name == "src" or p.name == ".venv":
             return p.parent
     raise ProjectLayoutError(f"Could not locate 'src' in parents of: {start}")
 
@@ -75,7 +75,7 @@ def resolve_cache_paths(*, app_name: str, start: Path, env_var: str = "MCP_CACHE
     if override := os.environ.get(env_var):
         base_cache = Path(override).expanduser().resolve()
     else:
-        base_cache = project_root_from_src(start) / "cache"
+        base_cache = project_root(start) / "cache"
     if app_name.strip() == "":
         app_cache = base_cache
     else:
@@ -95,7 +95,7 @@ def resolve_project_path(*, start: Path) -> Path:
     Returns:
         A Path object pointing at the Project's base path.
     """
-    return project_root_from_src(start) 
+    return project_root(start) 
 
 def get_module_path(*, start: Path) -> CachePaths:
     """Resolve Module directory.
@@ -109,4 +109,4 @@ def get_module_path(*, start: Path) -> CachePaths:
     Returns:
         A Path object pointing to the project's module path.
     """
-    return project_root_from_src(start) / "src" / "lib"
+    return project_root(start) / "src" / "lib"
