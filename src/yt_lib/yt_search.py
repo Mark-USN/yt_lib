@@ -34,13 +34,13 @@ from typing import Any, Annotated
 from pydantic import Field
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from lib.utils.youtube_ids import (
+from yt_lib.utils.yt_ids import (
         extract_video_id,
         is_playlist_id,
         extract_playlist_id
     )
-from lib.utils.api_keys import api_vault
-from lib.utils.log_utils import get_logger, log_tree
+from yt_lib.utils.api_keys import api_vault
+from yt_lib.utils.log_utils import get_logger, log_tree
 logger = get_logger(__name__)
 
 # A small, process-wide throttle to avoid overwhelming upstream services when a

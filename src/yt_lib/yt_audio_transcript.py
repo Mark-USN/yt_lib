@@ -15,10 +15,10 @@ from yt_dlp import YoutubeDL
 from youtube_transcript_api import FetchedTranscript
 from dataclasses import dataclass
 from collections.abc import Callable
-from lib.utils.ffmpeg_bootstrap import ensure_ffmpeg_on_path, get_ffmpeg_binary_path
-from lib.utils.paths import resolve_cache_paths
-from lib.utils.youtube_ids import extract_video_id
-from lib.utils.log_utils import get_logger # , log_tree
+from yt_lib.utils.ffmpeg_bootstrap import ensure_ffmpeg_on_path, get_ffmpeg_binary_path
+from yt_lib.utils.paths import resolve_cache_paths
+from yt_lib.utils.yt_ids import extract_video_id
+from yt_lib.utils.log_utils import get_logger # , log_tree
 
 
 # -----------------------------

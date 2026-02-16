@@ -33,7 +33,6 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, TypedDict, TypeVar
 # from urllib.parse import parse_qs, urlparse
-from lib.utils.log_utils import get_logger
 from youtube_transcript_api import (
     FetchedTranscript,
     NoTranscriptFound,
@@ -42,8 +41,9 @@ from youtube_transcript_api import (
     TranslationLanguageNotAvailable,
     YouTubeTranscriptApi,
 )
-from lib.utils.paths import resolve_cache_paths
-from lib.utils.youtube_ids import extract_video_id
+from yt_lib.utils.log_utils import get_logger
+from yt_lib.utils.paths import resolve_cache_paths
+from yt_lib.utils.yt_ids import extract_video_id
 
 logger = get_logger(__name__)
 
