@@ -10,14 +10,14 @@ import asyncio
 import concurrent.futures
 import threading
 from pathlib import Path
-from typing import Any, List, Dict, Optional, TypeVar
+from typing import Any
 from yt_dlp import YoutubeDL
-from youtube_transcript_api import FetchedTranscript
+# from youtube_transcript_api import FetchedTranscript
 from dataclasses import dataclass
 from collections.abc import Callable
 from yt_lib.utils.ffmpeg_bootstrap import ensure_ffmpeg_on_path, get_ffmpeg_binary_path
 from yt_lib.utils.paths import resolve_cache_paths
-from yt_lib.utils.yt_ids import extract_video_id
+from yt_lib.yt_ids import extract_video_id
 from yt_lib.utils.log_utils import get_logger # , log_tree
 
 
@@ -166,8 +166,8 @@ async def transcribe_with_whisper_async(
     overlap: float = CHUNK_OVERLAP_SECONDS,
     *,
     yield_every_n_chunks: int = 1,
-    progress_cb: Optional[ProgressCallback] = None,
-) -> Optional[List[Dict]]:
+    progress_cb: ProgressCallback | None = None,
+) -> list[dict] | None:
     """Async/transcribable variant of `transcribe_with_whisper`.
 
     This function yields control back to the event loop between chunks so the job
@@ -214,7 +214,7 @@ async def transcribe_with_whisper_async(
     if step <= 0:
         step = samples_per_chunk
 
-    chunks: List[Dict] = []
+    chunks: list[dict] = []
     chunk_index = 0
 
     # progress fn based on samples:
@@ -285,13 +285,13 @@ async def transcribe_with_whisper_async(
 
 async def fetch_audio_transcript_async(
         url: str,
-        prefer_langs: Optional[List[str]] = None,
+        prefer_langs: list[str] | None = None,
         *,
         model_name: str = "small",
         chunk_duration: float = CHUNK_DURATION_SECONDS,
         overlap: float = CHUNK_OVERLAP_SECONDS,
-        progress_cb: Optional[ProgressCallback] = None, 
-    ) -> Optional[List[Dict]]:
+        progress_cb: ProgressCallback | None = None, 
+    ) -> list[dict] | None:
     """Async wrapper around `fetch_audio_transcript` with cooperative cancellation.
 
     Major differences from the sync version:
@@ -342,7 +342,7 @@ async def fetch_audio_transcript_async(
         progress_cb(0.05, "audio downloaded")
 
     # Transcribe with cooperative cancellation
-    chunks: Optional[List[Dict]] = None
+    chunks: list[dict] | None = None
     try:
         chunks = await transcribe_with_whisper_async(
                 audio_path,
@@ -371,8 +371,8 @@ async def fetch_audio_transcript_async(
     return chunks
 
 
-async def youtube_audio_json_async(url: str,
-                                   prefer_langs: Optional[List[str]] = None,
+async def youtube_audio_json(url: str,
+                                   prefer_langs: list[str] | None = None,
                                    *,
                                    progress_cb: Any = None,
                                    ) -> str | None:
@@ -386,8 +386,8 @@ async def youtube_audio_json_async(url: str,
     return json.dumps(chunks, ensure_ascii=False, indent=2)
 
 
-async def youtube_audio_text_async(url: str,
-                                   prefer_langs: Optional[List[str]] = None,
+async def youtube_audio_text(url: str,
+                                   prefer_langs: list[str] | None = None,
                                    *,
                                    progress_cb: Any = None,
                                    ) -> str | None:
@@ -400,7 +400,7 @@ async def youtube_audio_text_async(url: str,
     if chunks is None:
         return None
     # Same logic as youtube_audio_text: join segment texts
-    full_text_parts: List[str] = []
+    full_text_parts: list[str] = []
     for chunk in chunks:
         text_part = (chunk.get("text") or "").strip()
         if text_part:
@@ -417,9 +417,8 @@ async def youtube_audio_text_async(url: str,
 
 def test() -> None:
     """ CLI entry point to test the YouTube to text tool. """
-    import fastmcp, torch
+    import torch
     from datetime import timedelta
-    print("\nfastmcp:", fastmcp.__version__)
     print("torch:", torch.__version__)
     print("CUDA available:", torch.cuda.is_available())
     print("Device count:", torch.cuda.device_count())

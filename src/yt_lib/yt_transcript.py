@@ -31,7 +31,7 @@ import time
 from contextlib import contextmanager
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, TypedDict, TypeVar
+from typing import TypedDict
 # from urllib.parse import parse_qs, urlparse
 from youtube_transcript_api import (
     FetchedTranscript,
@@ -43,7 +43,7 @@ from youtube_transcript_api import (
 )
 from yt_lib.utils.log_utils import get_logger
 from yt_lib.utils.paths import resolve_cache_paths
-from yt_lib.utils.yt_ids import extract_video_id
+from yt_lib.yt_ids import extract_video_id
 
 logger = get_logger(__name__)
 
@@ -292,8 +292,6 @@ def fetch_transcript(
 
         return transcript_to_list_and_cache(fetched, cache_path)
 
-import re
-from collections.abc import Sequence
 
 _SENTENCE_PATTERN: re.Pattern[str] = re.compile(
     r'(.+?(?<!\b[A-Z]\.)(?<!\b[A-Z][a-z]\.)[.!?…]+["\')\]]*)(?=\s|$)'
@@ -311,7 +309,7 @@ def split_sentences(text: str) -> tuple[list[str], str]:
     return out, remainder
 
 
-def json_to_sentences(transcript_list: Sequence["TranscriptSnippet"], *,) -> str:
+def json_to_sentences(transcript_list: Sequence["TranscriptSnippet"]) -> str:
     sentences: list[str] = []
     prev_end = ""  # initialize!
 

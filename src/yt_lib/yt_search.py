@@ -34,7 +34,7 @@ from typing import Any, Annotated
 from pydantic import Field
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from yt_lib.utils.yt_ids import (
+from yt_lib.yt_ids import (
         extract_video_id,
         is_playlist_id,
         extract_playlist_id
@@ -762,30 +762,50 @@ def test() -> None:
     if playlist_ids:
         logger.info("Fetching playlist info only (no expansion)")
         pi = youtube_playlist_info(playlist=playlist_ids[:2])
+        if isinstance(pi, dict):
+            log_tree(
+                        logger = logging.Logger,
+                        level = logging.INFO,
+                        label = "Playlist Info",
+                        obj = pi,
+                    )
+
         # log_tool_result("youtube_playlist_info", {"items": pi if isinstance(pi, list) else [pi]}, level=logging.INFO)
 
         logger.info("Expanding playlist videos (opt-in)")
         pv = youtube_playlist_video_list(playlist=playlist_ids[0], max_videos=10)
-        # if isinstance(pv, dict):
-        #     log_tool_result("youtube_playlist_video_list", {"items": pv.get("items", {})}, level=logging.INFO, items_key="items")
+        if isinstance(pv, dict):
+            log_tree(
+                        logger = logging.Logger,
+                        level = logging.INFO,
+                        label = "Playlist with video info",
+                        obj = pv,
+                   )
 
 # -------------------------------------------------------------------------------
 # Search for Playlists only
 # -------------------------------------------------------------------------------
 
 
-    # logger.info("Executing youtube_search(query=%s)", yt_search)
+    logger.info("Executing youtube_search(query=%s)", yt_search)
     sr = youtube_search(query=yt_search, order="date", max_results=5, kinds="playlist")
-    # log_tool_result("youtube_search", sr, level=logging.INFO)
+    pi = youtube_playlist_video_list(playlist=playlist_ids[0], max_videos=10)
+    if isinstance(pi, dict):
+        log_tree(
+                    logger = logging.Logger,
+                    level = logging.INFO,
+                    label = "Playlist with video info",
+                    obj = pi,
+                )
 
-    playlist_ids = [it.get("playlist_id") for it in sr.get("items", []) if it.get("kind") == "playlist"]
-    playlist_ids = [pid for pid in playlist_ids if pid]
+    # playlist_ids = [it.get("playlist_id") for it in sr.get("items", []) if it.get("kind") == "playlist"]
+    # playlist_ids = [pid for pid in playlist_ids if pid]
 
-    if playlist_ids:
-        logger.info("Expanding playlist videos (opt-in)")
-        pv = youtube_playlist_video_list(playlist=playlist_ids[0], max_videos=3)
-        # if isinstance(pv, dict):
-        #     log_tool_result("youtube_playlist_video_list", {"items": pv.get("items", {})}, level=logging.INFO, items_key="items")
+    # if playlist_ids:
+    #     logger.info("Expanding playlist videos (opt-in)")
+    #     pv = youtube_playlist_video_list(playlist=playlist_ids[0], max_videos=3)
+    #     # if isinstance(pv, dict):
+    #     #     log_tool_result("youtube_playlist_video_list", {"items": pv.get("items", {})}, level=logging.INFO, items_key="items")
 
 
 if __name__ == "__main__":

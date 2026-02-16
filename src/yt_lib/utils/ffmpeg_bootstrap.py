@@ -31,7 +31,8 @@ import zipfile
 from pathlib import Path
 from typing import Optional
 from urllib.request import urlopen
-from lib.utils.log_utils import get_logger # , log_tree
+from yt_lib.utils.log_utils import get_logger # , log_tree
+
 
 # -----------------------------
 # Logging setup
