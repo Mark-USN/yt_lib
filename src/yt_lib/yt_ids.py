@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 # from collections.abc import Iterable
@@ -107,13 +107,33 @@ class YtdlpMetadata:
     description: str
     channel: str | None
     upload_date: str | None
-    duration: int | None
+    duration: float | None
     view_count: int | None
     like_count: int | None
     webpage_url: str | None = None
+    ext:str | None = None
+    video_format:str | None = None
+    filesize:int | None = None
+    fps: float | None = None
+    resolution: str | None = None
+
+
+    @classmethod
+    def extract_video_metadata(cls, info: dict[str, object]) -> dict[str, Any]:
+       fmt = info["requested_formats"][0] if "requested_formats" in info else info
+       return {
+            "ext": fmt.get("ext"),
+            "video_format": fmt.get("format"),
+            "filesize": fmt.get("filesize") or fmt.get("filesize_approx"),
+            "fps": fmt.get("fps"),
+            "resolution": fmt.get("resolution")
+                or f"{fmt.get('width')}x{fmt.get('height')}",
+            "duration": fmt.get("duration"),
+        }
 
     @classmethod
     def from_yt_dlp(cls, *, url: str, info: dict[str, object]) -> YtdlpMetadata:
+        format_data = YtdlpMetadata.extract_video_metadata(info)
         return cls(
             url=url,
             video_id=info["id"],
@@ -125,4 +145,9 @@ class YtdlpMetadata:
             webpage_url=info.get("webpage_url"),
             view_count=info.get("view_count"),
             like_count=info.get("like_count"),
+            ext=format_data["ext"],
+            video_format=format_data["video_format"],
+            filesize=format_data["filesize"],
+            fps=format_data["fps"],
+            resolution=format_data["resolution"],
         )

@@ -311,20 +311,26 @@ def split_sentences(text: str) -> tuple[list[str], str]:
 
 def json_to_sentences(transcript_list: Sequence["TranscriptSnippet"]) -> str:
     sentences: list[str] = []
-    prev_end = ""  # initialize!
-
     for snip in transcript_list:
         part = str(snip.get("text", "")).strip()
         if not part:
             continue
+        sentences.append(part)
 
-        chunk = f"{prev_end} {part}".strip() if prev_end else part
+    # prev_end = ""  # initialize!
 
-        sentence_list, prev_end = split_sentences(chunk)
-        sentences.extend(sentence_list)
+    # for snip in transcript_list:
+    #     part = str(snip.get("text", "")).strip()
+    #     if not part:
+    #         continue
 
-    if prev_end:
-        sentences.append(prev_end)
+    #     chunk = f"{prev_end} {part}".strip() if prev_end else part
+
+    #     sentence_list, prev_end = split_sentences(chunk)
+    #     sentences.extend(sentence_list)
+
+    # if prev_end:
+    #     sentences.append(prev_end)
 
     return "\n".join(sentences)
 
