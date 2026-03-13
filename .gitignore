@@ -58,3 +58,6 @@ uv.lock
 # =========================
 .DS_Store
 Thumbs.db
+
+# Misc.
+Info/

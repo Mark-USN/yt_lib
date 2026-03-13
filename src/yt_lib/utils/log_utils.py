@@ -6,6 +6,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, asdict, is_dataclass
 import logging
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 import os
 import sys
 from typing import Any
@@ -40,6 +42,14 @@ class LogConfig:
     tree_max_str: int = 220
 
 
+@dataclass(frozen=True, slots=True)
+class FileLogConfig:
+    path: Path
+    max_bytes: int = 5_000_000
+    backup_count: int = 5
+    encoding: str = "utf-8"
+
+
 class ContextAdapter(logging.LoggerAdapter):
     """Inject context values into LogRecord.
 
@@ -59,7 +69,14 @@ class ContextAdapter(logging.LoggerAdapter):
         return msg, kwargs
 
 
-def configure_logging(cfg: LogConfig | None = None, *, force: bool = False) -> None:
+def configure_logging(
+                        cfg: LogConfig | None = None,
+                        *,
+                        force: bool = False,
+                        file: FileLogConfig | None = None,
+                        tee_console: bool = True,
+                    ) -> None:
+
     """Idempotent-ish basic configuration for console apps.
 
     - Safe to call early in your entrypoint (server/client).
@@ -79,10 +96,26 @@ def configure_logging(cfg: LogConfig | None = None, *, force: bool = False) -> N
     if force:
         root_logger.handlers.clear()
 
-    handler = logging.StreamHandler(stream=sys.stdout)
-    handler.setLevel(level)
-    handler.setFormatter(_ContextFormatter(cfg.fmt, datefmt=cfg.datefmt))
-    root_logger.addHandler(handler)
+    formatter = _ContextFormatter(cfg.fmt, datefmt=cfg.datefmt)
+
+    if tee_console:
+        sh = logging.StreamHandler(stream=sys.stdout)
+        sh.setLevel(level)
+        sh.setFormatter(formatter)
+        root_logger.addHandler(sh)
+
+    if file is not None:
+        file.path.parent.mkdir(parents=True, exist_ok=True)
+        fh = RotatingFileHandler(
+            file.path,
+            maxBytes=file.max_bytes,
+            backupCount=file.backup_count,
+            encoding=file.encoding,
+        )
+        fh.setLevel(level)
+        fh.setFormatter(formatter)
+        root_logger.addHandler(fh)
+
     # Optional: quiet noisy libraries
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
