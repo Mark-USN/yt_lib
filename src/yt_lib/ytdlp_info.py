@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import logging
+# import logging
 import json
 from pathlib import Path
-from platformdirs import PlatformDirs
+# from platformdirs import PlatformDirs
 from dataclasses import dataclass, field
 from copy import deepcopy
 from typing import Any
@@ -641,5 +641,5 @@ def read_YtdlpInfo(path: Path) -> YtdlpInfo:
             info = json.load(f)
         return YtdlpInfo.from_dict(info, include_raw=True, copy_raw=False, include_formats=True)
     except Exception as e:  # pylint: disable=broad-exception-caught
-        logger.warning("Error reading YtdlpInfo from %s: %s", latest_file, e)
+        logger.warning("Error reading YtdlpInfo from %s: %s", f, e)
         return None

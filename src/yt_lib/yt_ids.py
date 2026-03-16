@@ -4,7 +4,7 @@ import re
 # from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Final
+from typing import Final, Any
 from urllib.parse import parse_qs, urlparse
 
 _VIDEO_ID_RE: Final = re.compile(r"^[A-Za-z0-9_-]{11}$")
@@ -120,8 +120,8 @@ class YtdlpMetadata:
 
     @classmethod
     def extract_video_metadata(cls, info: dict[str, object]) -> dict[str, Any]:
-       fmt = info["requested_formats"][0] if "requested_formats" in info else info
-       return {
+        fmt = info["requested_formats"][0] if "requested_formats" in info else info
+        return {
             "ext": fmt.get("ext"),
             "video_format": fmt.get("format"),
             "filesize": fmt.get("filesize") or fmt.get("filesize_approx"),
