@@ -605,9 +605,10 @@ def fetch_YtdlpInfo_object(
     )
 
 
-def _atomic_write_json(path: Path, text: str, *, encoding: str = "utf-8") -> None:
-    """Write text atomically by replace()'ing a temp file in the same directory."""
+def _atomic_write_json(path: Path, data: Any, *, encoding: str = "utf-8") -> None:
+    """Write JSON atomically by replacing the target with a temp file."""
     path.parent.mkdir(parents=True, exist_ok=True)
+
     with NamedTemporaryFile(
         mode="w",
         delete=False,
@@ -616,30 +617,43 @@ def _atomic_write_json(path: Path, text: str, *, encoding: str = "utf-8") -> Non
         newline="\n",
     ) as tf:
         tmp = Path(tf.name)
-        # tf.write(text)
-        json.dump(text, tf, indent=2, ensure_ascii=False)
+        json.dump(data, tf, indent=2, ensure_ascii=False)
         tf.flush()
+
     tmp.replace(path)
 
-def write_info(path: Path, info: dict) -> None:
+
+def write_info(path: Path, info: dict[str, Any]) -> None:
     _atomic_write_json(path, info)
 
-def read_info(path: Path) -> dict:
+
+def read_info(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
+
 
 def write_YtdlpInfo(path: Path, info: YtdlpInfo) -> None:
     if not isinstance(info, YtdlpInfo):
         raise TypeError(f"info must be YtdlpInfo, got {type(info).__name__}")
-    if info.raw is None:
+    raw:dict[str, any] = info.raw
+    if raw is None:
         raise ValueError("YtdlpInfo.raw must be present to write to file")
-    _atomic_write_json(path, info)
 
-def read_YtdlpInfo(path: Path) -> YtdlpInfo:
+    # Option 1: write the raw dict exactly as received/stored
+    write_info(path, raw)
+
+
+
+def read_YtdlpInfo(path: Path) -> YtdlpInfo | None:
     try:
-        with path.open("r", encoding="utf-8") as f:
-            info = json.load(f)
-        return YtdlpInfo.from_dict(info, include_raw=True, copy_raw=False, include_formats=True)
+        info = read_info(path)
+
+        return YtdlpInfo.from_dict(
+            info,
+            include_raw=True,
+            copy_raw=False,
+            include_formats=True,
+        )
     except Exception as e:  # pylint: disable=broad-exception-caught
-        logger.warning("Error reading YtdlpInfo from %s: %s", f, e)
+        logger.warning("Error reading YtdlpInfo from %s: %s", path, e)
         return None
