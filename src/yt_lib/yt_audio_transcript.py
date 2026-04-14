@@ -1,20 +1,20 @@
+""" YouTube audio transcription tool using Whisper, with async support for
+    cooperative cancellation.
+"""
+
 from __future__ import annotations
-# import datetime
-# import os
-# import re
 import json
-# import logging
 import time
-import whisper
+from datetime import timedelta
 import asyncio
 import concurrent.futures
 import threading
 from pathlib import Path
 from typing import Any
-from yt_dlp import YoutubeDL
-# from youtube_transcript_api import FetchedTranscript
 from dataclasses import dataclass
 from collections.abc import Callable
+import whisper
+from yt_dlp import YoutubeDL
 from yt_lib.utils.ffmpeg_bootstrap import ensure_ffmpeg_on_path, get_ffmpeg_binary_path
 from yt_lib.utils.paths import resolve_cache_paths
 from yt_lib.yt_ids import extract_video_id
@@ -42,16 +42,23 @@ CHUNK_OVERLAP_SECONDS = 5.0
 # ----------------- Output management -----------------
 
 def _get_audio_dir() -> Path:
-    """Folder for temporary storage of yt_dlp audio cache.
-    We delete these if they are over a day old in the code below.
+    """ Folder for temporary storage of yt_dlp audio cache.
+        We delete these if they are over a day old in the code below.
+        Returns:
+            Path to the audio cache directory.
     """
     return resolve_cache_paths(
         app_name = "audio",
-        start = Path(__file__)).app_cache_dir 
+        start = Path(__file__)).app_cache_dir
 
 
 def _get_transcript_cache_path(video_id: str) -> Path:
-    """Return the path to the cached transcript JSON for this video."""
+    """ Return the path to the cached transcript JSON for this video.
+        Args:
+            video_id: The YouTube video ID.
+        Returns:
+            Path to the cached transcript JSON file for this video.
+    """
 
     return resolve_cache_paths(
         app_name = "transcripts",
@@ -62,7 +69,13 @@ def _get_transcript_cache_path(video_id: str) -> Path:
 
 
 def download_audio(url: str, video_id: str) -> Path:
-    """Download audio from a YouTube video using yt-dlp, with simple caching."""
+    """ Download audio from a YouTube video using yt-dlp, with simple caching.
+        Args:
+            url: The YouTube video URL.
+            video_id: The YouTube video ID (used for caching).
+        Returns:
+            Path to the downloaded audio file (in WAV format).
+    """
     audio_dir = _get_audio_dir()
 
     # If we already have any file named <video_id>.* reuse it
@@ -124,8 +137,13 @@ def download_audio(url: str, video_id: str) -> Path:
 
 _WHISPER_THREAD_LOCAL = threading.local()
 
-def _get_thread_local_whisper_model(model_name: str):
-    """Load/cache Whisper model in the *worker thread* (thread-local)."""
+def _get_thread_local_whisper_model(model_name: str) -> whisper.model.Whisper:
+    """ Load/cache Whisper model in the *worker thread* (thread-local).
+        Args:
+            model_name: Name of the Whisper model to load (e.g., "small").
+        Returns:
+            The loaded Whisper model.
+    """
     model = getattr(_WHISPER_THREAD_LOCAL, "model", None)
     cached_name = getattr(_WHISPER_THREAD_LOCAL, "model_name", None)
     if model is None or cached_name != model_name:
@@ -133,26 +151,48 @@ def _get_thread_local_whisper_model(model_name: str):
         _WHISPER_THREAD_LOCAL.model_name = model_name
     return _WHISPER_THREAD_LOCAL.model
 
-def _transcribe_chunk_in_worker_thread(model_name: str, segment_audio):
-    """Runs inside the dedicated worker thread."""
+def _transcribe_chunk_in_worker_thread(model_name: str, segment_audio) -> dict:
+    """ Runs inside the dedicated worker thread.
+        Args:
+            model_name: Name of the Whisper model to use.
+            segment_audio: Audio segment to transcribe.
+        Returns:
+            The transcription result as a dictionary.
+    """
     model = _get_thread_local_whisper_model(model_name)
     return whisper.transcribe(model, segment_audio)
 
 
 @dataclass
 class ProgressInfo:
+    """ Structured progress information for transcription jobs."""
     fraction: float          # 0.0 .. 1.0
     message: str = ""        # optional human-readable status
 
 
 def make_sample_progress_fn(num_samples: int) -> Callable[[int, int, str], ProgressInfo]:
-    """
-    Returns a function that converts (processed_samples, total_samples, phase) into ProgressInfo.
-    Uses samples, not chunk count, so it stays accurate even for a partial last chunk.
+    """ Returns a function that converts (processed_samples, total_samples, phase)
+        into ProgressInfo.
+        Args:
+            num_samples: Total number of audio samples to process (for the whole file).
+        Returns:
+            A function that takes (processed_samples, total_samples, phase) and 
+            returns ProgressInfo.
+
+        Uses samples, not chunk count, so it stays accurate even for a partial last chunk.
     """
     total = max(1, int(num_samples))
 
-    def _progress(processed_samples: int, total_samples: int = total, phase: str = "") -> ProgressInfo:
+    def _progress(processed_samples: int, total_samples: int = total,
+                  phase: str = "") -> ProgressInfo:
+        """ Convert processed_samples into a fraction and message for progress reporting.
+            Args:
+                processed_samples: Number of samples processed so far.
+                total_samples: Total number of samples to process.
+                phase: Optional phase description.
+            Returns:
+                ProgressInfo object with fraction and message.
+        """
         done = min(max(int(processed_samples), 0), total_samples)
         frac = done / total_samples
         return ProgressInfo(frac, f"{phase} {frac*100:.1f}%".strip())
@@ -168,20 +208,17 @@ async def transcribe_with_whisper_async(
     yield_every_n_chunks: int = 1,
     progress_cb: ProgressCallback | None = None,
 ) -> list[dict] | None:
-    """Async/transcribable variant of `transcribe_with_whisper`.
-
-    This function yields control back to the event loop between chunks so the job
-    can be cancelled by the caller.
-
-    Args:
-        audio_path: Path to the audio file.
-        model_name: Whisper model name to use.
-        chunk_duration: Duration (in seconds) of each chunk.
-        overlap: Overlap (in seconds) between chunks.
-        yield_every_n_chunks: Yield to loop every N chunks (default: 1).
-
-    Returns:
-        List of Whisper chunk dicts, or None if transcription fails.
+    """ Async/transcribable variant of `transcribe_with_whisper`.
+        This function yields control back to the event loop between chunks so the job
+        can be cancelled by the caller.
+        Args:
+            audio_path: Path to the audio file.
+            model_name: Whisper model name to use.
+            chunk_duration: Duration (in seconds) of each chunk.
+            overlap: Overlap (in seconds) between chunks.
+            yield_every_n_chunks: Yield to loop every N chunks (default: 1).
+        Returns:
+            List of Whisper chunk dicts, or None if transcription fails.
     """
     logger.info(
         "🎧 (async) Transcribing %s with Whisper model '%s' in %.1fs chunks (overlap %.1fs)",
@@ -222,6 +259,11 @@ async def transcribe_with_whisper_async(
 
 
     def report(processed_samples: int, phase: str):
+        """ Helper to report progress based on processed samples and phase. 
+            Args:
+                processed_samples: Number of audio samples processed so far.
+                phase: Optional phase description.
+        """
         if progress_cb:
             info = prog(processed_samples, num_samples, phase)
             progress_cb(info.fraction, info.message)
@@ -233,7 +275,8 @@ async def transcribe_with_whisper_async(
     # 'random thread' issues that can happen if the default threadpool hops threads.
     try:
         loop = asyncio.get_running_loop()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix="whisper") as ex:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1,
+                                                   thread_name_prefix="whisper") as ex:
             for start_sample in range(0, num_samples, step):
                 # Checkpoint: if the caller cancelled, this is where CancelledError lands.
                 if yield_every_n_chunks > 0 and (chunk_index % yield_every_n_chunks) == 0:
@@ -290,18 +333,29 @@ async def fetch_audio_transcript_async(
         model_name: str = "small",
         chunk_duration: float = CHUNK_DURATION_SECONDS,
         overlap: float = CHUNK_OVERLAP_SECONDS,
-        progress_cb: ProgressCallback | None = None, 
+        progress_cb: ProgressCallback | None = None,
     ) -> list[dict] | None:
-    """Async wrapper around `fetch_audio_transcript` with cooperative cancellation.
+    """ Async wrapper around `fetch_audio_transcript` with cooperative cancellation.
+        Args:
+            url: YouTube video URL.
+            prefer_langs: List of preferred languages for transcription.
+            model_name: Whisper model name to use.
+            chunk_duration: Duration (in seconds) of each chunk.
+            overlap: Overlap (in seconds) between chunks.
+            progress_cb: Optional callback for progress updates.
+        Returns:
+            List of Whisper chunk dicts, or None if transcription fails.
+        Raises:
+            asyncio.CancelledError: If the operation is cancelled by the caller.
 
-    Major differences from the sync version:
-      * audio download happens in a worker thread
-      * transcription uses `transcribe_with_whisper_async()` so cancellation can be
-        observed between chunks
+        Major differences from the sync version:
+          * audio download happens in a worker thread
+          * transcription uses `transcribe_with_whisper_async()` so cancellation can be
+            observed between chunks
 
-    Cancellation behavior:
-      * Cancelling the MCP long-job raises `asyncio.CancelledError`.
-      * Cancellation takes effect BETWEEN chunks (see async transcribe notes).
+        Cancellation behavior:
+          * Cancelling the MCP long-job raises `asyncio.CancelledError`.
+          * Cancellation takes effect BETWEEN chunks (see async transcribe notes).
     """
     if prefer_langs is None:
         prefer_langs = ["en", "es"]
@@ -320,7 +374,8 @@ async def fetch_audio_transcript_async(
                 progress_cb(1.0, "finished")
             return transcript
         except Exception as exc:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Failed to load cached transcript %s: %s; recomputing.", cache_path, exc)
+            logger.warning("⚠️ Failed to load cached transcript %s: %s; recomputing.",
+                           cache_path, exc)
 
     # Ensure ffmpeg on PATH
     if progress_cb:
@@ -350,7 +405,8 @@ async def fetch_audio_transcript_async(
                 chunk_duration=chunk_duration,
                 overlap=overlap,
                 yield_every_n_chunks=1,
-                progress_cb=lambda frac, msg: progress_cb(0.05 + 0.95 * frac, msg) if progress_cb else None,
+                progress_cb=lambda frac, msg: progress_cb(0.05 + 0.95 * frac, msg) if
+                    progress_cb else None,
             )
     except asyncio.CancelledError:
         # If cancelled, best effort cleanup of the downloaded audio file
@@ -376,7 +432,16 @@ async def youtube_audio_json(url: str,
                                    *,
                                    progress_cb: Any = None,
                                    ) -> str | None:
-    """Async version of youtube_audio_json (supports cooperative cancellation)."""
+    """ Async version of youtube_audio_json (supports cooperative cancellation).
+        Args:
+            url: YouTube video URL.
+            prefer_langs: List of preferred languages for transcription.
+            progress_cb: Optional callback for progress updates.
+        Returns:
+            JSON string of Whisper chunk dicts, or None if transcription fails.
+        Raises:
+            asyncio.CancelledError: If the operation is cancelled by the caller.
+    """
 
     cb = progress_cb if callable(progress_cb) else None
 
@@ -392,7 +457,16 @@ async def youtube_audio_text(url: str,
                                    progress_cb: Any = None,
                                    ) -> str | None:
 
-    """Async version of youtube_audio_text (supports cooperative cancellation)."""
+    """ Async version of youtube_audio_text (supports cooperative cancellation).
+        Args:
+            url: YouTube video URL.
+            prefer_langs: List of preferred languages for transcription.
+            progress_cb: Optional callback for progress updates.
+        Returns:
+            Transcribed text, or None if transcription fails.
+        Raises:
+            asyncio.CancelledError: If the operation is cancelled by the caller.
+    """
 
     cb = progress_cb if callable(progress_cb) else None
 
@@ -417,8 +491,7 @@ async def youtube_audio_text(url: str,
 
 def test() -> None:
     """ CLI entry point to test the YouTube to text tool. """
-    import torch
-    from datetime import timedelta
+    import torch                                # pylint: disable=import-outside-toplevel
     print("torch:", torch.__version__)
     print("CUDA available:", torch.cuda.is_available())
     print("Device count:", torch.cuda.device_count())
@@ -459,7 +532,6 @@ def test() -> None:
     print("\n\n--- TEXT AUDIO TRANSCRIPT ---\n")
     print(f"{text_trans}")
     print(f"\n✅ Transcribed in {str(timedelta(seconds=elapsed))} seconds.\n")
-    
+
 if __name__ == "__main__":
     test()
-

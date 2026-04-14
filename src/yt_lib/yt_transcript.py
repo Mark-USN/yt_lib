@@ -28,6 +28,7 @@ import re
 import secrets
 import threading
 import time
+from datetime import timedelta
 from contextlib import contextmanager
 from collections.abc import Sequence
 from pathlib import Path
@@ -55,7 +56,7 @@ _FETCH_SEM = threading.BoundedSemaphore(value=max(1, _MAX_CONCURRENT_FETCHES))
 
 
 class TranscriptSnippet(TypedDict):
-    """Raw transcript snippet shape returned by `FetchedTranscript.to_raw_data()`."""
+    """ Raw transcript snippet shape returned by `FetchedTranscript.to_raw_data()`."""
 
     text: str
     start: float
@@ -74,14 +75,16 @@ PREFERRED_LANGS: tuple[str, ...] = (
 
 @contextmanager
 def _file_lock(lock_path: Path):
-    """Best-effort cross-platform advisory file lock.
+    """ Best-effort cross-platform advisory file lock.
+        Args:
+            lock_path: Path to the lock file (e.g. "<cachefile>.lock").
 
-    We use a sidecar lock file (e.g. "<video>.json.lock") so multiple workers
-    don't concurrently read/write the same cache file.
+        We use a sidecar lock file (e.g. "<video>.json.lock") so multiple workers
+        don't concurrently read/write the same cache file.
 
-    On Windows this uses msvcrt.locking; on POSIX it uses fcntl.flock.
-    If neither is available, the lock becomes a no-op (still safe with atomic
-    writes, but may do duplicate work).
+        On Windows this uses msvcrt.locking; on POSIX it uses fcntl.flock.
+        If neither is available, the lock becomes a no-op (still safe with atomic
+        writes, but may do duplicate work).
     """
 
     lock_path.parent.mkdir(parents=True, exist_ok=True)
@@ -119,10 +122,14 @@ def _file_lock(lock_path: Path):
 
 
 def _atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> None:
-    """Atomically write text to `path`.
+    """ Atomically write text to `path`.
+        Args:
+            path: The destination file path.
+            text: The text content to write.
+            encoding: The text encoding to use (default: "utf-8").
 
-    Writes to a temp file in the same directory, then replaces the destination.
-    This prevents readers from seeing partial writes.
+        Writes to a temp file in the same directory, then replaces the destination.
+        This prevents readers from seeing partial writes.
     """
 
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -140,15 +147,27 @@ def _atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> Non
             pass
 
 def _get_transcript_cache_path(video_id: str) -> Path:
-    """Return the path to the cached transcript JSON for this video."""
+    """ Return the path to the cached transcript JSON for this video.
+        Args:
+            video_id: The YouTube video ID.
+        Returns:
+            Path to the cached transcript JSON file (e.g. 
+                "<cache_dir>/transcripts/<video_id>.json").
+    """
 
     return resolve_cache_paths(
         app_name = "transcripts",
         start = Path(__file__)).app_cache_dir / f"{video_id}.json"
 
 
-def _as_raw_snippets(transcript: FetchedTranscript | list[TranscriptSnippet]) -> list[TranscriptSnippet]:
-    """Normalize transcript output to raw JSON-serializable snippet dicts."""
+def _as_raw_snippets(transcript: FetchedTranscript |
+                        list[TranscriptSnippet]) -> list[TranscriptSnippet]:
+    """ Normalize transcript output to raw JSON-serializable snippet dicts.
+        Args:
+            transcript: Either a `FetchedTranscript` object or a list of raw snippet dicts.
+        Returns:
+            A list of raw snippet dictionaries.
+    """
 
     if isinstance(transcript, list):
         return transcript
@@ -159,18 +178,15 @@ def transcript_to_list_and_cache(
     transcript: FetchedTranscript | list[TranscriptSnippet] | None,
     cache_path: Path,
 ) -> list[TranscriptSnippet] | None:
-    """Convert a fetched transcript into raw snippet dictionaries and cache to disk.
-
-    This is "best effort" caching: any write failure is logged and the transcript
-    is still returned.
-
-    Args:
-        transcript: Transcript object from `youtube-transcript-api` (or raw list)
-            or None.
-        cache_path: Destination JSON path.
-
-    Returns:
-        The transcript as `list[TranscriptSnippet]`, or None.
+    """ Convert a fetched transcript into raw snippet dictionaries and cache to disk.
+        This is "best effort" caching: any write failure is logged and the transcript
+        is still returned.
+        Args:
+            transcript: Transcript object from `youtube-transcript-api` (or raw list)
+                or None.
+            cache_path: Destination JSON path.
+        Returns:
+            The transcript as `list[TranscriptSnippet]`, or None.
     """
 
     if transcript is None:
@@ -194,15 +210,16 @@ def fetch_transcript(
     url_or_id: str,
     prefer_langs: Sequence[str] | None = None,
 ) -> list[TranscriptSnippet] | None:
-    """Fetch a transcript for a YouTube video and return raw snippet dicts.
-
-    Args:
-        url_or_id: YouTube URL or video id.
-        prefer_langs: Preferred language codes (descending priority). If None,
-            defaults to :data:`PREFERRED_LANGS`.
-
-    Returns:
-        A list of transcript snippets or None when no transcript exists.
+    """ Fetch a transcript for a YouTube video and return raw snippet dicts.
+        Args:
+            url_or_id: YouTube URL or video id.
+            prefer_langs: Preferred language codes (descending priority). If None,
+                defaults to :data:`PREFERRED_LANGS`.
+        Returns:
+            A list of transcript snippets or None when no transcript exists.
+        Raises:
+            TranscriptsDisabled: When transcripts are disabled for the video.
+            NoTranscriptFound: When no transcript is found for the video.
     """
 
     langs = list(prefer_langs) if prefer_langs is not None else list(PREFERRED_LANGS)
@@ -298,6 +315,12 @@ _SENTENCE_PATTERN: re.Pattern[str] = re.compile(
 )
 
 def split_sentences(text: str) -> tuple[list[str], str]:
+    """ Split text into sentences using a regex pattern.
+        Args:
+            text: The text to split.
+        Returns:
+            A tuple containing a list of sentences and the remaining text.
+    """
     out: list[str] = []
     last_end = 0
 
@@ -310,6 +333,13 @@ def split_sentences(text: str) -> tuple[list[str], str]:
 
 
 def json_to_sentences(transcript_list: Sequence["TranscriptSnippet"]) -> str:
+    """ Convert a list of transcript snippets into a single string with sentence-like chunks.
+    Args:
+        transcript_list: A list of transcript snippets.
+
+    Returns:
+        A single string with sentence-like chunks.
+    """
     sentences: list[str] = []
     for snip in transcript_list:
         part = str(snip.get("text", "")).strip()
@@ -338,24 +368,26 @@ def youtube_json(
     url_or_id: str,
     prefer_langs: Sequence[str] | None = None,
 ) -> list[TranscriptSnippet] | None:
-    """Return the raw transcript snippets (typed), or None.
-
-    This is the "structured" variant intended for typed workflow engines.
-    It returns the same data that `fetch_transcript()` produces (a list of
-    TranscriptSnippet dicts), without JSON serialization.
-
-    Args:
-        url_or_id: YouTube URL or video id.
-        prefer_langs: Preferred language codes (descending priority).
-
-    Returns:
-        A JSON string or None.
-
+    """ Return the raw transcript snippets (typed), or None.
+        This is the "structured" variant intended for typed workflow engines.
+        It returns the same data that `fetch_transcript()` produces (a list of
+        TranscriptSnippet dicts), without JSON serialization.
+        Args:
+            url_or_id: YouTube URL or video id.
+            prefer_langs: Preferred language codes (descending priority).
+        Returns:
+            A JSON string or None.
     """
     return fetch_transcript(url_or_id, prefer_langs)
 
 def youtube_text(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> str | None:
-    """Return the transcript as a single space-joined string, or None."""
+    """ Return the transcript as a single space-joined string, or None.
+        Args:
+            url_or_id: YouTube URL or video id.
+            prefer_langs: Preferred language codes (descending priority).
+        Returns:
+            A single string with the transcript, or None.
+    """
 
     transcript_list = fetch_transcript(url_or_id, prefer_langs)
     if transcript_list is None:
@@ -366,7 +398,17 @@ def youtube_text(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> s
 
 
 def youtube_sentences(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> str | None:
-    """Return the transcript as paragraph-separated text, or None."""
+    """ Return the transcript as paragraph-separated text, or None.
+        Args:
+            url_or_id: YouTube URL or video id.
+            prefer_langs: Preferred language codes (descending priority).
+        Returns:
+            A single string with the transcript, or None.
+
+        Due to punctuation and formatting inconsistencies in YouTube transcripts and
+        the incoherent timing of snippets, a reliable way to do this without using 
+        an external NLP library has not been found.
+    """
 
     transcript_list = fetch_transcript(url_or_id, prefer_langs)
     if transcript_list is None:
@@ -383,7 +425,6 @@ def youtube_sentences(url_or_id: str, prefer_langs: Sequence[str] | None = None)
 def test() -> None:
     """CLI entry point to test transcript retrieval (outside MCP)."""
 
-    from datetime import timedelta
 
     yt_url = "https://www.youtube.com/watch?v=ulebPxBw8Uw"
 

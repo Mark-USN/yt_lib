@@ -1,4 +1,4 @@
-﻿"""
+"""
 ffmpeg_bootstrap.py
 
 Install or locate ffmpeg so that both yt_dlp and whisper can use it.
@@ -64,10 +64,11 @@ BTBN_FFMPEG_ZIP_URL = (
 # ---------------------------------------------------------------------------
 
 def _is_windows() -> bool:
+    """ Return True if running on Windows."""
     return platform.system().lower().startswith("win")
 
 
-def find_ffmpeg_in_path() -> Optional[str]:
+def find_ffmpeg_in_path() -> str | None:
     """
     Return directory containing an existing ffmpeg binary found via PATH,
     or None if not found.
@@ -80,29 +81,38 @@ def find_ffmpeg_in_path() -> Optional[str]:
 
 
 def _download_file(url: str, dest: Path) -> None:
-    """Download a file from URL to dest."""
+    """ Download a file from URL to dest.
+        Args:
+            url: The URL to download from.
+            dest: The destination path to save the downloaded file.
+    """
     dest.parent.mkdir(parents=True, exist_ok=True)
     with urlopen(url) as resp, open(dest, "wb") as f:
         shutil.copyfileobj(resp, f)
 
 
 def _extract_zip(src_zip: Path, dest_dir: Path) -> None:
-    """Extract all contents of src_zip into dest_dir."""
+    """ Extract all contents of src_zip into dest_dir.
+        Args:
+            src_zip: The path to the zip file to extract.
+            dest_dir: The directory to extract the contents into.
+    """
     with zipfile.ZipFile(src_zip, "r") as zf:
         zf.extractall(dest_dir)
 
 
 def _make_executable(path: Path) -> None:
-    """Ensure the file is executable on POSIX."""
+    """ Ensure the file is executable on POSIX.
+        Args:
+            path: The path to the file to make executable.
+    """
     mode = path.stat().st_mode
     # add user execute bit
     path.chmod(mode | 0o100)
 
 
 def _install_ffmpeg_windows() -> str:
-    """
-    Download and install a static ffmpeg build into LOCAL_FFMPEG_DIR.
-
+    """ Download and install a static ffmpeg build into LOCAL_FFMPEG_DIR.
     Returns:
         str: The directory path where ffmpeg.exe was installed.
 
@@ -189,9 +199,7 @@ def _install_ffmpeg_windows() -> str:
 
 
 def _print_unix_instructions() -> None:
-    """
-    For non-Windows platforms where ffmpeg is not found, print install hints.
-    """
+    """ For non-Windows platforms where ffmpeg is not found, print install hints."""
     print(
         "[ffmpeg-bootstrap] ffmpeg not found on PATH.\n"
         "Please install ffmpeg using your package manager, e.g.:\n\n"
@@ -207,9 +215,10 @@ def _print_unix_instructions() -> None:
 # Public API
 # ---------------------------------------------------------------------------
 
-def get_ffmpeg_binary_path() -> Optional[str]:
-    """
-    Ensure an ffmpeg binary exists, and return the directory containing it.
+def get_ffmpeg_binary_path() -> str | None:
+    """ Ensure an ffmpeg binary exists, and return the directory containing it.
+        Returns:
+           str | None: The directory containing the ffmpeg binary, or None if not found.
 
     Order of preference:
       1) PROJECT_ROOT/.bin/ffmpeg(.exe) if present
@@ -239,15 +248,13 @@ def get_ffmpeg_binary_path() -> Optional[str]:
 
 
 def ensure_ffmpeg_on_path() -> str:
-    """
-    Ensure ffmpeg exists *and* is on PATH so that subprocess-based tools
-    like whisper and yt_dlp can find it.
+    """ Ensure ffmpeg exists *and* is on PATH so that subprocess-based tools
+        like whisper and yt_dlp can find it.
+        Returns:
+            str: directory containing the ffmpeg binary.
 
-    Returns:
-        str: directory containing the ffmpeg binary.
-
-    Raises:
-        SystemExit if ffmpeg cannot be found or installed.
+        Raises:
+            SystemExit if ffmpeg cannot be found or installed.
     """
     ffmpeg_dir = get_ffmpeg_binary_path()
     if not ffmpeg_dir:
@@ -268,9 +275,7 @@ def ensure_ffmpeg_on_path() -> str:
 
 
 def show_ffmpeg_license() -> None:
-    """
-    Print the contents or path of the saved ffmpeg license file, if present.
-    """
+    """ Print the contents or path of the saved ffmpeg license file, if present."""
     licence_dir = PROJECT_ROOT / "License"
     license_path = licence_dir / LOCAL_LICENSE_NAME
     if license_path.exists():

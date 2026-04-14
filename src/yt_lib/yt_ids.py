@@ -1,3 +1,5 @@
+""" Utilities for parsing YouTube video and playlist identifiers from URLs and text."""
+
 from __future__ import annotations
 
 import re
@@ -13,6 +15,7 @@ _CHANNEL_ID_RE: Final = re.compile(r"^UC[A-Za-z0-9_-]{22}$")
 
 
 class YoutubeIdKind(Enum):
+    """ The type of YouTube identifier."""
     VIDEO = auto()
     PLAYLIST = auto()
     CHANNEL = auto()
@@ -21,19 +24,38 @@ class YoutubeIdKind(Enum):
 
 @dataclass(slots=True, frozen=True)
 class YoutubeIdentifier:
+    """ A YouTube identifier with its classified type."""
     kind: YoutubeIdKind
     value: str
 
 
 def is_video_id(value: str) -> bool:
+    """ Check if the value is a valid YouTube video ID.
+        Args:
+            value: The string to check.
+        Returns:
+            True if the value is a valid YouTube video ID, False otherwise.
+    """
     return _VIDEO_ID_RE.fullmatch(value) is not None
 
 
 def is_playlist_id(value: str) -> bool:
+    """ Check if the value is a valid YouTube playlist ID.
+        Args:
+            value: The string to check.
+        Returns:
+            True if the value is a valid YouTube playlist ID, False otherwise.
+    """
     return _PLAYLIST_ID_RE.fullmatch(value) is not None
 
 
 def classify_youtube_id(value: str) -> YoutubeIdKind:
+    """ Classify the type of YouTube identifier based on its format.
+        Args:
+            value: The string to classify.
+        Returns:
+            The kind of YouTube identifier (VIDEO, PLAYLIST, CHANNEL, or UNKNOWN).
+    """
     if is_video_id(value):
         return YoutubeIdKind.VIDEO
     if is_playlist_id(value):
@@ -44,7 +66,12 @@ def classify_youtube_id(value: str) -> YoutubeIdKind:
 
 
 def extract_video_id(text: str) -> str | None:
-    """Extract a video id from a URL or return the input if it is already a video id."""
+    """ Extract a video id from a URL or return the input if it is already a video id.
+        Args:
+            text: The input string, which can be a YouTube video URL or a video ID
+        Returns:
+            The extracted video ID if found, otherwise None.
+    """
     if is_video_id(text):
         return text
 
@@ -78,7 +105,12 @@ def extract_video_id(text: str) -> str | None:
 
 
 def extract_playlist_id(text: str) -> str | None:
-    """Extract a playlist id from a URL or return the input if it is already a playlist id."""
+    """ Extract a playlist id from a URL or return the input if it is already a playlist id.
+        Args:
+            text: The input string, which can be a YouTube playlist URL or a playlist ID
+        Returns:
+            The extracted playlist ID if found, otherwise None.
+    """
     if is_playlist_id(text):
         return text
 
@@ -89,7 +121,12 @@ def extract_playlist_id(text: str) -> str | None:
 
 
 def extract_any_identifier(text: str) -> YoutubeIdentifier | None:
-    """Return the first recognized YouTube identifier (video or playlist) from text."""
+    """ Return the first recognized YouTube identifier (video or playlist) from text.
+        Args:
+            text: The input string, which can be a YouTube video or playlist URL or an ID
+        Returns:
+            A YoutubeIdentifier object if a valid identifier is found, otherwise None.
+    """
     if vid := extract_video_id(text):
         return YoutubeIdentifier(YoutubeIdKind.VIDEO, vid)
     if pid := extract_playlist_id(text):
@@ -101,6 +138,7 @@ def extract_any_identifier(text: str) -> YoutubeIdentifier | None:
 
 @dataclass(slots=True)
 class YtdlpMetadata:
+    """ Metadata extracted from yt-dlp info dict for a YouTube video."""
     url: str
     video_id: str
     title: str
@@ -120,6 +158,13 @@ class YtdlpMetadata:
 
     @classmethod
     def extract_video_metadata(cls, info: dict[str, object]) -> dict[str, Any]:
+        """ Extract relevant video metadata from a yt-dlp info dict, handling both
+            'requested_formats' and top-level format fields.
+            Args:
+                info: The yt-dlp info dictionary for a video.
+            Returns:
+                A dictionary containing extracted metadata fields.
+        """
         fmt = info["requested_formats"][0] if "requested_formats" in info else info
         return {
             "ext": fmt.get("ext"),
@@ -133,6 +178,13 @@ class YtdlpMetadata:
 
     @classmethod
     def from_yt_dlp(cls, *, url: str, info: dict[str, object]) -> YtdlpMetadata:
+        """ Create a YtdlpMetadata instance from a yt-dlp info dict for a video.
+            Args:
+                url: The original URL of the video.
+                info: The yt-dlp info dictionary for the video.
+            Returns:
+                A YtdlpMetadata instance populated with the extracted metadata.
+        """
         format_data = YtdlpMetadata.extract_video_metadata(info)
         return cls(
             url=url,

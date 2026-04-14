@@ -54,7 +54,12 @@ class CachePaths:
     app_cache_dir: Path
 
 
-def resolve_cache_paths(*, app_name: str, start: Path, env_var: str = "MCP_CACHE_DIR") -> CachePaths:
+def resolve_cache_paths(
+            *,
+            app_name: str,
+            start: Path,
+            env_var: str = "MCP_CACHE_DIR"
+        ) -> CachePaths:
     """Resolve cache directories for a given app/component.
 
     Resolution order:
@@ -95,7 +100,7 @@ def resolve_project_path(*, start: Path) -> Path:
     Returns:
         A Path object pointing at the Project's base path.
     """
-    return project_root(start) 
+    return project_root(start)
 
 def get_module_path(*, start: Path) -> CachePaths:
     """Resolve Module directory.

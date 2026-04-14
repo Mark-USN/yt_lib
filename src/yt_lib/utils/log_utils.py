@@ -1,4 +1,4 @@
-"""Utilities for consistent logging across the project."""
+""" Utilities for consistent logging across the project."""
 
 # src/lib/utils/log_utils.py
 from __future__ import annotations
@@ -23,7 +23,7 @@ _DEFAULT_LEVEL = os.environ.get("MCP_LOG_LEVEL", "INFO").upper()
 
 @dataclass(frozen=True, slots=True)
 class LogConfig:
-    """Central logging policy for the whole app/library."""
+    """ Central logging policy for the whole app/library."""
 
     root: str = _DEFAULT_ROOT
     level: str = _DEFAULT_LEVEL
@@ -44,6 +44,7 @@ class LogConfig:
 
 @dataclass(frozen=True, slots=True)
 class FileLogConfig:
+    """ Configuration for file-based logging. """
     path: Path
     max_bytes: int = 5_000_000
     backup_count: int = 5
@@ -51,7 +52,7 @@ class FileLogConfig:
 
 
 class ContextAdapter(logging.LoggerAdapter):
-    """Inject context values into LogRecord.
+    """ Inject context values into LogRecord.
 
     Use get_logger(..., job_id=..., tool=...) so you don't have to pass `extra=`
     in every log call.
@@ -60,6 +61,13 @@ class ContextAdapter(logging.LoggerAdapter):
     """
 
     def process(self, msg: str, kwargs: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+        """ Merge adapter context with any extra provided in the log call.
+            Args:
+                msg: The log message format string.
+                kwargs: The keyword arguments passed to the logging call.
+            Returns:
+                A tuple of the message and the updated kwargs with merged context.
+        """
         extra = kwargs.setdefault("extra", {})
         if not isinstance(extra, dict):
             # If user passed something unexpected, don't crash logging.
@@ -77,11 +85,16 @@ def configure_logging(
                         tee_console: bool = True,
                     ) -> None:
 
-    """Idempotent-ish basic configuration for console apps.
+    """ Idempotent-ish basic configuration for console apps.
+        Args:
+            cfg: Optional LogConfig to override defaults.
+            force: If True, force reconfiguration even if handlers exist.
+            file: Optional FileLogConfig for file-based logging.
+            tee_console: If True, also log to console.
 
-    - Safe to call early in your entrypoint (server/client).
-    - If handlers already exist on the root logger, we won't override them,
-      unless force=True.
+        - Safe to call early in your entrypoint (server/client).
+        - If handlers already exist on the root logger, we won't override them,
+          unless force=True.
     """
     cfg = cfg or LogConfig()
 
@@ -128,12 +141,19 @@ def get_logger(
     child: str | None = None,
     **context: object,
 ) -> logging.Logger:
-    """Factory: return a logger with project policy applied.
+    """ Factory: return a logger with project policy applied.
+        Args:
+            name: The name of the logger.
+            cfg: Optional LogConfig to override defaults.
+            child: Optional child logger name.
+            **context: Optional context values to attach to the logger.
+        Returns:
+            A logger instance with the specified configuration and context.
 
-    Benefits over logging.getLogger(__name__):
-      - Ensures consistent root namespace (e.g. yt_mcp.*)
-      - Optionally attaches structured context (job_id, tool, session_id, ...)
-      - Optionally returns a child logger (name.child)
+        Benefits over logging.getLogger(__name__):
+          - Ensures consistent root namespace (e.g. yt_mcp.*)
+          - Optionally attaches structured context (job_id, tool, session_id, ...)
+          - Optionally returns a child logger (name.child)
     """
     cfg = cfg or LogConfig()
 
@@ -146,9 +166,14 @@ def get_logger(
 
 
 def bind(logger: logging.Logger, **context: object) -> logging.Logger:
-    """Add/override context on an existing logger.
+    """ Add/override context on an existing logger.
+        Args:
+            logger: The logger instance to bind context to.
+            **context: Key-value pairs of context to add or override.
+        Returns:
+            A new logger instance with the merged context.
 
-    Useful when you create a module logger once, then later learn job/session ids.
+        Useful when you create a module logger once, then later learn job/session ids.
     """
     if isinstance(logger, ContextAdapter):
         merged = dict(logger.extra)
@@ -176,7 +201,19 @@ def log_tree(
     collapse_keys: set[str] | None = None,
     redact_keys: set[str] | None = None,
 ) -> None:
-    """Log nested structures in a stable, readable, indented format.
+    """ Log nested structures in a stable, readable, indented format.
+        Args:
+            logger: The logger instance to use for logging.
+            level: The logging level.
+            label: A label for the logged object.
+            obj: The object to log.
+            cfg: Optional LogConfig to override defaults.
+            indent: Optional indentation level.
+            max_depth: Optional maximum depth to log.
+            max_items: Optional maximum number of items to log.
+            max_str: Optional maximum string length to log.
+            collapse_keys: Optional set of keys to collapse.
+            redact_keys: Optional set of keys to redact.
 
     Typical usage:
         log_tree(logger, logging.DEBUG, "playlist_info", payload, collapse_keys={"raw"})
@@ -212,14 +249,23 @@ def format_tree(
     collapse_keys: set[str] | None = None,
     redact_keys: set[str] | None = None,
 ) -> str:
-    """Return an indented tree view of nested dict/list structures.
+    """ Return an indented tree view of nested dict/list structures.
+        Args:
+            obj: The object to format.
+            indent: The number of spaces to use for each indentation level.
+            max_depth: The maximum depth to traverse.
+            max_items: The maximum number of items to display per collection.
+            max_str: The maximum length of string representations.
+            sort_dict_keys: Whether to sort dictionary keys.
+            collapse_keys: Keys to collapse in the output.
+            redact_keys: Keys to redact in the output.
 
-    Includes one-line summaries for your known YT shapes by `kind`:
-      - "video"
-      - "playlist"
-      - "playlist#video"
+        Includes one-line summaries for your known YT shapes by `kind`:
+          - "video"
+          - "playlist"
+          - "playlist#video"
 
-    Falls back to generic printing for unknown shapes (including raw blobs).
+        Falls back to generic printing for unknown shapes (including raw blobs).
     """
     collapse_keys = collapse_keys or set()
     redact_keys = redact_keys or set()
@@ -228,6 +274,13 @@ def format_tree(
     lines: list[str] = []
 
     def _short(v: object) -> str:
+        """ Return a short string representation of a value, with newlines escaped and truncated 
+            if necessary. 
+            Args:
+                v: The value to represent as a string.
+            Returns:
+                A short string representation of the value.
+        """
         if isinstance(v, str):
             s = v.replace("\n", "\\n")
             return s if len(s) <= max_str else f"{s[: max_str - 1]} "
@@ -238,6 +291,12 @@ def format_tree(
         return r if len(r) <= max_str else f"{r[: max_str - 1]} "
 
     def _is_seq(v: object) -> bool:
+        """ Return True if v is a sequence type (like list or tuple) but not a string/bytes. 
+            Args:
+                v: The value to check.
+            Returns:
+                True if v is a sequence type, False otherwise.
+        """
         return isinstance(v, Sequence) and not isinstance(v, (str, bytes, bytearray))
 
     def _collapsed_hint(v: object) -> str:
@@ -248,6 +307,12 @@ def format_tree(
         return "<collapsed>"
 
     def _kind_summary(d: Mapping[object, object]) -> str | None:
+        """ Return a one-line summary for known YT shapes based on the 'kind' field.
+            Args:
+                d: The dictionary representing the YT shape.
+            Returns:
+                A one-line summary string if the kind is known, None otherwise.
+        """
         kind = d.get("kind")
 
         if kind == "video":
@@ -284,6 +349,13 @@ def format_tree(
 
 
     def _coerce_to_walkable(v: object) -> object:
+        """ Coerce various object types to something we can walk (Mapping or Sequence).
+            Args:
+                v: The value to coerce.
+            Returns:
+                The coerced value, which is either a Mapping, a Sequence, or the original value if 
+                it cannot be coerced.
+        """
         # Already walkable
         if isinstance(v, Mapping):
             return v
@@ -329,7 +401,12 @@ def format_tree(
 
 
     def _walk(v: object, prefix: str, depth: int) -> None:
-
+        """ Recursively walk the object and build lines for the tree representation.
+            Args:
+                v: The value to walk.
+                prefix: The prefix for each line.
+                depth: The current depth of the recursion.
+        """
         v = _coerce_to_walkable(v)
 
         if depth >= max_depth:
@@ -418,7 +495,7 @@ def format_tree(
 # -----------------------------------------------------------------------------
 
 class _ContextFormatter(logging.Formatter):
-    """Adds %(context)s to the record based on any extra keys in the record."""
+    """ Adds %(context)s to the record based on any extra keys in the record. """
 
     _KNOWN_STD = {
         "name", "msg", "args", "levelname", "levelno", "pathname", "filename",
@@ -428,6 +505,12 @@ class _ContextFormatter(logging.Formatter):
     }
 
     def format(self, record: logging.LogRecord) -> str:
+        """ Build a " [key=value key=value]" suffix for any extra fields in the record. 
+            Args:
+                record: The LogRecord to format.
+            Returns:
+                The formatted log record as a string.
+        """
         # Build a compact " key=value" suffix from extra fields (job_id, tool, etc.)
         extras = {
             k: v for k, v in record.__dict__.items()
@@ -443,6 +526,13 @@ class _ContextFormatter(logging.Formatter):
 
 
 def _safe_value(v: object) -> str:
+    """ Convert a value to a string, safely handling exceptions and escaping newlines.
+        Args:
+            v: The value to convert to a string.
+        Returns:
+            A string representation of the value, with newlines escaped. If conversion fails,
+            returns a placeholder string indicating the failure.
+    """
     try:
         s = str(v)
     except Exception as e:  # pylint: disable=broad-exception-caught
@@ -451,6 +541,13 @@ def _safe_value(v: object) -> str:
 
 
 def _normalize_name(name: str, *, root: str) -> str:
+    """ Normalize a logger name to ensure it starts with the root namespace.
+        Args:
+            name: The original logger name (e.g., __name__).
+            root: The root namespace to enforce (e.g., "yt_mcp").
+        Returns:
+            A normalized logger name that starts with the root namespace.
+    """
     # Common case: name is __name__ like "src.lib.youtube.search"
     # You may want to map "src.lib." away; keep it simple and predictable.
     if name == "__main__":
@@ -467,6 +564,14 @@ def _normalize_name(name: str, *, root: str) -> str:
 
 
 def _parse_level(level: str) -> int:
+    """ Parse a logging level from a string, case-insensitively.
+        Args:
+            level: The logging level as a string (e.g., "DEBUG", "INFO", "WARNING").
+        Returns:
+            The corresponding logging level as an integer.
+        Raises:
+            ValueError: If the provided level string is not a valid logging level.
+    """
     value = logging.getLevelName(level.upper().strip())
     if not isinstance(value, int):
         raise ValueError(f"Invalid logging level: {level!r}")

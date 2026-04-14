@@ -1,24 +1,6 @@
-﻿"""
+"""
 YouTube search + metadata tools (playlist-aware; playlist expansion is opt-in).
 
-CHANGES (per your 3 requests)
-1) Playlist expansion is now a separate tool:
-   - youtube_playlist_info(): playlist metadata ONLY (cheap-ish)
-   - youtube_playlist_video_list(): playlistItems + videos.list enrichment (potentially expensive)
-   The restored helper you added has been cleaned up and kept as:
-     youtube_get_playlist_videos()
-
-2) Python 3.12+ recommendations:
-   - Built-in generics: list[str], dict[str, Any]
-   - `|` unions
-   - collections.abc Mapping / Iterable
-   - Minimize `typing` imports (only Any + Annotated)
-
-3) youtube_playlist_info() signature:
-   - playlist: str | list[str]
-   (Removed Mapping[str, Any] options as requested.)
-
-Source baseline: /mnt/data/youtube_search.py :contentReference[oaicite:0]{index=0}
 """
 
 from __future__ import annotations
@@ -87,29 +69,39 @@ def yt_execute(req, *, label: str = "") -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 class YtOrder(str, Enum):
-    date = "date"
-    rating = "rating"
-    relevance = "relevance"
-    title = "title"
-    videocount = "videoCount"
-    viewcount = "viewCount"
+    """ Class representing the order in which YouTube search results can be returned. """
+    DATE = "date"
+    RATING = "rating"
+    RELEVANCE = "relevance"
+    TITLE = "title"
+    VIDEOCOUNT = "videoCount"
+    VIEWCOUNT = "viewCount"
 
     @property
     def help(self) -> str:
+        """ Return a human-friendly description of the sort order."""
         return {
-            YtOrder.date: "Reverse chronological by publish date.",
-            YtOrder.rating: "Highest to lowest rating.",
-            YtOrder.relevance: "Most relevant to the query (default).",
-            YtOrder.title: "Alphabetical by title.",
-            YtOrder.videocount: "Channels by uploaded video count; live by concurrent viewers.",
-            YtOrder.viewcount: "Highest to lowest view count.",
+            YtOrder.DATE: "Reverse chronological by publish date.",
+            YtOrder.RATING: "Highest to lowest rating.",
+            YtOrder.RELEVANCE: "Most relevant to the query (default).",
+            YtOrder.TITLE: "Alphabetical by title.",
+            YtOrder.VIDEOCOUNT: "Channels by uploaded video count; live by concurrent viewers.",
+            YtOrder.VIEWCOUNT: "Highest to lowest view count.",
         }[self]
 
     @classmethod
     def coerce(cls, value: "YtOrder | str") -> "YtOrder":
+        """ Coerce a value to a YtOrder enum member.
+            Args:
+                value: A YtOrder member or a string representing the order.
+            Returns:
+                A YtOrder enum member.
+            Raises:
+                ValueError: If the value cannot be coerced to a YtOrder.
+        """
         if isinstance(value, cls):
             return value
-        v = str(value).strip()
+        v = str(value).strip().upper()
         try:
             return cls(v)
         except Exception as exc:
@@ -117,33 +109,44 @@ class YtOrder(str, Enum):
 
     @classmethod
     def help_text(cls) -> str:
+        """ Return a human-friendly description of all sort orders. """
         return " | ".join(f"{e.value}: {e.help}" for e in cls)
 
 
 class SearchKind(str, Enum):
-    video = "video"
-    playlist = "playlist"
-    both = "video,playlist"
+    """ Class representing the type of YouTube search results to return. """
+    VIDEO = "video"
+    PLAYLIST = "playlist"
+    BOTH = "video,playlist"
 
     @classmethod
     def coerce(cls, value: "SearchKind | str") -> "SearchKind":
+        """ Coerce a value to a SearchKind enum member. 
+            Args:
+                value: A SearchKind member or a string representing the search kind(s).
+            Returns:
+                A SearchKind enum member.
+            Raises:
+                ValueError: If the value cannot be coerced to a SearchKind.
+        """
         if isinstance(value, cls):
             return value
         raw = str(value).strip().lower()
         aliases = {
-            "both": cls.both,
-            "all": cls.both,
-            "any": cls.both,
-            "video,playlist": cls.both,
-            "videos": cls.video,
-            "playlists": cls.playlist,
+            "both": cls.BOTH,
+            "all": cls.BOTH,
+            "any": cls.BOTH,
+            "video,playlist": cls.BOTH,
+            "videos": cls.VIDEO,
+            "playlists": cls.PLAYLIST,
         }
         if raw in aliases:
             return aliases[raw]
         try:
             return cls(raw)
         except Exception as exc:
-            raise ValueError(f"Invalid SearchKind {value!r}. Valid: {[e.value for e in cls]}") from exc
+            raise ValueError(f"Invalid SearchKind {value!r}. Valid: "
+                             "{[e.value for e in cls]}") from exc
 
 
 # ---------------------------------------------------------------------------
@@ -162,6 +165,12 @@ _ISO8601_DUR_RE = re.compile(
 
 
 def parse_iso8601_duration_to_seconds(dur: str) -> int:
+    """ Parse an ISO 8601 duration string (e.g., 'PT1H2M3S') and return total seconds.
+        Args:
+            dur: An ISO 8601 duration string.
+        Returns:
+            Total duration in seconds.
+    """
     m = _ISO8601_DUR_RE.match(dur or "")
     if not m:
         return 0
@@ -173,18 +182,37 @@ def parse_iso8601_duration_to_seconds(dur: str) -> int:
 
 
 def _as_int(v: Any) -> int:
+    """ Convert a value to an integer, returning 0 on failure.
+        Args:
+            v: The value to convert.
+        Returns:
+            The integer representation of the value, or 0 if conversion fails.
+    """
     try:
         return int(v)
-    except Exception:    #pylint: disable=broad-exception-caught   
+    except Exception:    #pylint: disable=broad-exception-caught
         return 0
 
 
 def _chunked(seq: list[str], size: int) -> Iterable[list[str]]:
+    """ Yield successive chunks of a list.
+        Args:
+            seq: The list to chunk.
+            size: The size of each chunk.
+        Yields:
+            Chunks of the list as lists of strings.
+    """
     for i in range(0, len(seq), size):
         yield seq[i : i + size]
 
 
 def dedupe_preserve_order(items: Iterable[Any]) -> list[Any]:
+    """ Remove duplicates from a list while preserving order.
+        Args:
+            items: An iterable of items to deduplicate.
+        Returns:
+            A list of items with duplicates removed, preserving the original order.
+    """
     seen: set[Any] = set()
     out: list[Any] = []
     for x in items:
@@ -195,7 +223,11 @@ def dedupe_preserve_order(items: Iterable[Any]) -> list[Any]:
 
 
 def merge_outer(target: dict[str, dict[str, Any]], source: dict[str, dict[str, Any]]) -> None:
-    """Merge nested dicts: target[outer].update(source[outer])."""
+    """ Merge nested dicts: target[outer].update(source[outer]).
+        Args:
+            target: The target dictionary to update.
+            source: The source dictionary to merge from.
+    """
     for outer_key, inner_updates in source.items():
         if outer_key not in target:
             target[outer_key] = dict(inner_updates)
@@ -204,11 +236,23 @@ def merge_outer(target: dict[str, dict[str, Any]], source: dict[str, dict[str, A
 
 
 def _coerce_to_list_str(x: str | list[str]) -> list[str]:
+    """ Coerce a value to a list of strings.
+        Args:
+            x: A string or a list of strings.
+        Returns:
+            A list of strings.
+    """
     return x if isinstance(x, list) else [x]
 
 
 
 def normalize_video_inputs(inputs: Iterable[str]) -> tuple[list[str], list[dict[str, Any]]]:
+    """ Normalize video inputs by extracting video IDs and collecting errors.
+        Args:
+            inputs: An iterable of video input strings.
+        Returns:
+            A tuple containing a list of unique video IDs and a list of error dictionaries.
+    """
     video_ids: list[str] = []
     errors: list[dict[str, Any]] = []
 
@@ -223,6 +267,12 @@ def normalize_video_inputs(inputs: Iterable[str]) -> tuple[list[str], list[dict[
 
 
 def normalize_playlist_inputs(inputs: Iterable[str]) -> tuple[list[str], list[dict[str, Any]]]:
+    """ Normalize playlist inputs by extracting playlist IDs and collecting errors.
+            Args:
+                inputs: An iterable of playlist input strings.
+        Returns:
+            A tuple containing a list of unique playlist IDs and a list of error dictionaries.
+    """
     playlist_ids: list[str] = []
     errors: list[dict[str, Any]] = []
 
@@ -242,6 +292,10 @@ def normalize_playlist_inputs(inputs: Iterable[str]) -> tuple[list[str], list[di
 # ---------------------------------------------------------------------------
 
 def _get_youtube_client():
+    """ Get a YouTube API client using the API key from the vault.
+        Returns:
+            A YouTube API client instance.
+    """
     vault = api_vault()
     google_key = vault.get_value(key="GOOGLE_KEY")
     if not google_key:
@@ -249,7 +303,16 @@ def _get_youtube_client():
     return build("youtube", "v3", developerKey=google_key)
 
 
-def _get_video_details(youtube, video_ids: str | list[str]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def _get_video_details(youtube,
+                       video_ids: str | list[str]
+                    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """ Fetch video details for one or many video IDs using videos.list (batched).
+        Args:
+            youtube: A YouTube API client instance.
+            video_ids: A single video ID or a list of video IDs.
+        Returns:
+            A tuple containing a list of video details and a list of error dictionaries.
+    """
     out: list[dict[str, Any]] = []
     errors: list[dict[str, Any]] = []
     if not video_ids:
@@ -258,7 +321,8 @@ def _get_video_details(youtube, video_ids: str | list[str]) -> tuple[list[dict[s
     try:
         if isinstance(video_ids, str):
             vid = extract_video_id(video_ids) or video_ids
-            req = youtube.videos().list(part="snippet,contentDetails,statistics", id=vid, maxResults=1)
+            req = youtube.videos().list(part="snippet,contentDetails,statistics",
+                                        id=vid, maxResults=1)
             resp = yt_execute(req, label="videos.list single")
             out.extend(resp.get("items", []) or [])
             return out, errors
@@ -278,7 +342,16 @@ def _get_video_details(youtube, video_ids: str | list[str]) -> tuple[list[dict[s
     return out, errors
 
 
-def _get_playlist_details(youtube, playlist_ids: str | list[str]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def _get_playlist_details(youtube,
+                          playlist_ids: str | list[str]
+                        ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """ Fetch playlist details for one or many playlist IDs using playlists.list (batched).
+        Args:
+            youtube: A YouTube API client instance.
+            playlist_ids: A single playlist ID or a list of playlist IDs.
+        Returns:
+            A tuple containing a list of playlist details and a list of error dictionaries.
+    """
     out: list[dict[str, Any]] = []
     errors: list[dict[str, Any]] = []
     if not playlist_ids:
@@ -287,13 +360,15 @@ def _get_playlist_details(youtube, playlist_ids: str | list[str]) -> tuple[list[
     try:
         if isinstance(playlist_ids, str):
             pid = extract_playlist_id(playlist_ids) or playlist_ids
-            req = youtube.playlists().list(part="snippet,contentDetails,status", id=pid, maxResults=1)
+            req = youtube.playlists().list(part="snippet,contentDetails,status",
+                                           id=pid, maxResults=1)
             resp = yt_execute(req, label="playlists.list single")
             out.extend(resp.get("items", []) or [])
             return out, errors
 
         for chunk in _chunked(playlist_ids, 50):
-            req = youtube.playlists().list(part="snippet,contentDetails,status", id=",".join(chunk), maxResults=len(chunk))
+            req = youtube.playlists().list(part="snippet,contentDetails,status",
+                                           id=",".join(chunk), maxResults=len(chunk))
             resp = yt_execute(req, label="playlists.list batch")
             out.extend(resp.get("items", []) or [])
 
@@ -310,9 +385,13 @@ def youtube_get_playlist_videos(
     *,
     max_videos: int = 50,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Fetch playlistItems for a single playlistId (paged).
-
-    Returns (items, errors).
+    """ Fetch playlistItems for a single playlistId (paged).
+        Args:
+            youtube: A YouTube API client instance.
+            playlist_id: A single playlist ID.
+            max_videos: The maximum number of videos to fetch.
+        Returns:
+            A tuple containing a list of playlist items and a list of error dictionaries.
     """
     # Assume playlist_id is already validated/extracted.
     errors: list[dict[str, Any]] = []
@@ -348,6 +427,13 @@ def youtube_get_playlist_videos(
 # ---------------------------------------------------------------------------
 
 def _shape_video_info(video_id: str, video_item: dict[str, Any] | None) -> dict[str, Any]:
+    """ Shape a video item from videos.list into a consistent output format. 
+        Args:
+            video_id: The ID of the video.
+            video_item: The video item dictionary from the YouTube API response.
+        Returns:
+            A dictionary containing the shaped video information.
+    """
     if not video_item:
         return {
             "kind": "video",
@@ -386,6 +472,13 @@ def _shape_video_info(video_id: str, video_item: dict[str, Any] | None) -> dict[
 
 
 def _shape_playlist_info(playlist_id: str, playlist_item: dict[str, Any] | None) -> dict[str, Any]:
+    """ Shape a playlist item from playlists.list into a consistent output format.
+        Args:
+            playlist_id: The ID of the playlist.
+            playlist_item: The playlist item dictionary from the YouTube API response.
+        Returns:
+            A dictionary containing the shaped playlist information.
+    """
     if not playlist_item:
         return {
             "kind": "playlist",
@@ -421,6 +514,14 @@ def _shape_playlist_info(playlist_id: str, playlist_item: dict[str, Any] | None)
 
 
 def _shape_playlist_video_entry(playlist_id: str, playlist_item: dict[str, Any]) -> dict[str, Any]:
+    """ Shape a playlistItem entry into a consistent output format, combining playlist 
+        and video fields.
+        Args:
+            playlist_id: The ID of the playlist.
+            playlist_item: The playlist item dictionary from the YouTube API response.
+        Returns:
+            A dictionary containing the shaped playlist video entry.
+    """
     snippet = playlist_item.get("snippet") or {}
     content = playlist_item.get("contentDetails") or {}
     status = playlist_item.get("status") or {}
@@ -445,11 +546,16 @@ def _shape_playlist_video_entry(playlist_id: str, playlist_item: dict[str, Any])
 # ---------------------------------------------------------------------------
 
 def enrich_search_items(youtube, search_items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Preserve original order and enrich search items.
+    """ Preserve original order and enrich search items.
+        Args:
+            youtube: A YouTube API client instance.
+            search_items: A list of search item dictionaries from the YouTube API response.
+        Returns:
+            A list of enriched search item dictionaries.
 
-    - Videos -> videos.list -> _shape_video_info
-    - Playlists -> playlists.list -> _shape_playlist_info
-    Does NOT expand playlists via playlistItems.list.
+        - Videos -> videos.list -> _shape_video_info
+        - Playlists -> playlists.list -> _shape_playlist_info
+        Does NOT expand playlists via playlistItems.list.
     """
     spine: list[dict[str, Any]] = []
     video_ids: list[str] = []
@@ -507,15 +613,23 @@ def youtube_search(
     ],
     order: Annotated[
         YtOrder | str,
-        Field(default=YtOrder.relevance, description="Sort order. " + YtOrder.help_text()),
-    ] = YtOrder.relevance,
+        Field(default=YtOrder.RELEVANCE, description="Sort order. " + YtOrder.help_text()),
+    ] = YtOrder.RELEVANCE,
     max_results: Annotated[int, Field(description="Max search items (1-50).", ge=1, le=50)] = 10,
     kinds: Annotated[
         SearchKind | str,
-        Field(default=SearchKind.both, description="Return videos only, playlists only, or both."),
-    ] = SearchKind.both,
+        Field(default=SearchKind.BOTH, description="Return videos only, playlists only, or both."),
+    ] = SearchKind.BOTH,
 ) -> dict[str, Any]:
-    """Search YouTube and return enriched MCP-friendly JSON (no playlist expansion)."""
+    """ Search YouTube and return enriched MCP-friendly JSON (no playlist expansion).
+        Args:
+            query: The search query string.
+            order: The sort order for the search results.
+            max_results: The maximum number of search results to return.
+            kinds: The types of search results to return (videos, playlists, or both).
+        Returns:
+            A dictionary containing the search results and any errors.
+    """
     sk_kinds = SearchKind.coerce(kinds)
     yt_order = YtOrder.coerce(order)
     youtube = _get_youtube_client()
@@ -570,7 +684,12 @@ def youtube_search(
 def youtube_video_info(
     inputs: Annotated[list[str], Field(description="List of YouTube video URLs or video IDs.")],
 ) -> dict[str, Any]:
-    """Return full metadata for one or many videos."""
+    """ Return full metadata for one or many videos.
+        Args:
+            inputs: A list of YouTube video URLs or video IDs.
+        Returns:
+            A dictionary containing the video metadata and any errors.
+    """
     youtube = _get_youtube_client()
 
     video_ids, errors = normalize_video_inputs(inputs)
@@ -594,16 +713,19 @@ def youtube_video_info(
     return result
 
 
-# CHANGE (request #3): playlist arg is ONLY str | list[str]
 def youtube_playlist_info(
     playlist: Annotated[
         str | list[str],
         Field(description="Playlist URL/ID or list of playlist URLs/IDs."),
     ],
 ) -> dict[str, Any] | list[dict[str, Any]]:
-    """Return general playlist metadata only.
+    """ Return general playlist metadata only.
+        Args:
+            playlist: Playlist URL/ID or list of playlist URLs/IDs.
+        Returns:
+            A dictionary or list of dictionaries containing the playlist metadata and any errors.
 
-    This does NOT fetch playlistItems or video metadata.
+        This does NOT fetch playlistItems or video metadata.
     """
     youtube = _get_youtube_client()
     inputs = _coerce_to_list_str(playlist)
@@ -639,15 +761,16 @@ def youtube_playlist_info(
 
     if isinstance(playlist, list):
         result: dict[str, Any] | list[dict[str, Any]] = out
-        # log_tool_result("youtube_playlist_info", {"playlist_ids_count": len(out), "items": out}, level=logging.DEBUG)
+        # log_tool_result("youtube_playlist_info", {"playlist_ids_count": len(out),
+        # "items": out}, level=logging.DEBUG)
     else:
         result = out[0] if out else {}
-        # log_tool_result("youtube_playlist_info", {"playlist_ids_count": 1, "items": [result]}, level=logging.DEBUG)
+        # log_tool_result("youtube_playlist_info", {"playlist_ids_count": 1,
+        # "items": [result]}, level=logging.DEBUG)
 
     return result
 
 
-# CHANGE (request #1): separate opt-in expansion tool
 def youtube_playlist_video_list(
     playlist: Annotated[
         str | list[str],
@@ -655,17 +778,22 @@ def youtube_playlist_video_list(
     ],
     max_videos: Annotated[int, Field(description="Max videos per playlist.", ge=1, le=500)] = 50,
 ) -> dict[str, Any] | list[dict[str, Any]]:
-    """Return playlist videos enriched with video_info-style metadata.
+    """ Return playlist videos enriched with video_info-style metadata.
+        Args:
+            playlist: Playlist URL/ID or list of playlist URLs/IDs.
+            max_videos: Maximum number of videos to fetch per playlist.
+        Returns:
+            A dictionary or list of dictionaries containing the playlist videos and any errors.
 
-    Output shape per playlist:
-      {
-        "kind": "playlist_videos",
-        "playlist_id": "...",
-        "url": "https://www.youtube.com/playlist?list=...",
-        "max_videos": 50,
-        "items": { "<videoId>": { ...playlist_fields..., ...video_fields... } },
-        "errors": [...]
-      }
+        Output shape per playlist:
+          {
+            "kind": "playlist_videos",
+            "playlist_id": "...",
+            "url": "https://www.youtube.com/playlist?list=...",
+            "max_videos": 50,
+            "items": { "<videoId>": { ...playlist_fields..., ...video_fields... } },
+            "errors": [...]
+          }
     """
     youtube = _get_youtube_client()
     inputs = _coerce_to_list_str(playlist)
@@ -756,7 +884,8 @@ def test() -> None:
     sr = youtube_search(query=yt_search, order="date", max_results=5, kinds="video,playlist")
     # log_tool_result("youtube_search", sr, level=logging.INFO)
 
-    playlist_ids = [it.get("playlist_id") for it in sr.get("items", []) if it.get("kind") == "playlist"]
+    playlist_ids = [it.get("playlist_id") for it in sr.get("items", []) if
+                    it.get("kind") == "playlist"]
     playlist_ids = [pid for pid in playlist_ids if pid]
 
     if playlist_ids:
@@ -769,8 +898,6 @@ def test() -> None:
                         label = "Playlist Info",
                         obj = pi,
                     )
-
-        # log_tool_result("youtube_playlist_info", {"items": pi if isinstance(pi, list) else [pi]}, level=logging.INFO)
 
         logger.info("Expanding playlist videos (opt-in)")
         pv = youtube_playlist_video_list(playlist=playlist_ids[0], max_videos=10)
@@ -797,16 +924,6 @@ def test() -> None:
                     label = "Playlist with video info",
                     obj = pi,
                 )
-
-    # playlist_ids = [it.get("playlist_id") for it in sr.get("items", []) if it.get("kind") == "playlist"]
-    # playlist_ids = [pid for pid in playlist_ids if pid]
-
-    # if playlist_ids:
-    #     logger.info("Expanding playlist videos (opt-in)")
-    #     pv = youtube_playlist_video_list(playlist=playlist_ids[0], max_videos=3)
-    #     # if isinstance(pv, dict):
-    #     #     log_tool_result("youtube_playlist_video_list", {"items": pv.get("items", {})}, level=logging.INFO, items_key="items")
-
 
 if __name__ == "__main__":
     test()
