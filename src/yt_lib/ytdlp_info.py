@@ -435,7 +435,8 @@ def pick_best_format(info: dict[str, Any]) -> YtdlpFormat | None:
             fmt.fps or 0.0,
             fmt.best_filesize or 0,
         )
-
+    # Using max with the score function will return the format with the highest
+    # height, then fps, then filesize as a tiebreaker.
     return max(candidates, key=score)
 
 
@@ -506,6 +507,7 @@ def estimate_stream(
         kind = "unknown"
         codec = None
 
+    # Convert tbr from kbps to mbps, and filesize+duration to mbps, for easier comparison.
     mbps_from_tbr = _kbps_to_mbps(tbr_kbps) if tbr_kbps is not None else None
     mbps_from_filesize = (
         _bytes_to_mbps(filesize, duration_s)
@@ -709,12 +711,14 @@ class YtdlpInfo:
         return None
 
     @property
-    def selection_summary(self) -> SelectionSummary:
+    def selection_summary(self) -> SelectionSummary | None:
         """ Convenience wrapper around summarize_selection(raw).
             Returns:
                 A SelectionSummary object summarizing the selection.
         """
-        return summarize_selection(self.raw)
+        if self.raw:
+            return summarize_selection(self.raw)
+        return None
 
 
 # -----------------------------------------------------------------------------
@@ -828,20 +832,6 @@ def read_info(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
-
-def write_YtdlpInfo(path: Path, info: YtdlpInfo) -> None:
-    """ Write a YtdlpInfo object to a JSON file.
-        Args:
-            path: The path to write the JSON file to.
-            info: The YtdlpInfo object to write.
-    """
-    warn_deprecated(old_name="write_YtdlpInfo", new_name="write_ytdlp_info")
-    write_ytdlp_info(
-            path = path,
-            info = info,
-        )
-
-
 def write_ytdlp_info(path: Path, info: YtdlpInfo) -> None:
     """ Write a YtdlpInfo object to a JSON file.
             Args:
@@ -858,7 +848,17 @@ def write_ytdlp_info(path: Path, info: YtdlpInfo) -> None:
     write_info(path, raw)
 
 
-
+def write_YtdlpInfo(path: Path, info: YtdlpInfo) -> None:
+    """ Write a YtdlpInfo object to a JSON file.
+        Args:
+            path: The path to write the JSON file to.
+            info: The YtdlpInfo object to write.
+    """
+    warn_deprecated(old_name="write_YtdlpInfo", new_name="write_ytdlp_info")
+    write_ytdlp_info(
+            path = path,
+            info = info,
+        )
 
 def read_ytdlp_info(path: Path) -> YtdlpInfo | None:
     """ Read a YtdlpInfo object from a JSON file.
