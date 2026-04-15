@@ -1,7 +1,7 @@
 """ A simple API keys management class using python-dotenv."""
 # import os
 import dotenv
-from lib.utils.log_utils import get_logger # , log_tree
+from yt_lib.utils.log_utils import get_logger # , log_tree
 
 # from pathlib import Path
 

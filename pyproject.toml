@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yt-lib"
-version = "0.3.1"
+version = "0.3.2"
 description = "Library files for Youtube transcripts and search."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,7 +15,7 @@ dependencies = [
   "pydantic>=2.12.5",
   "google-api-python-client>=2.190.0",
   "pdoc>=16.0.0",
-  "dotenv>=0.9.9",
+  "python-dotenv>=1.2.2",
 ]
 
 [tool.hatch.build.targets.wheel]
