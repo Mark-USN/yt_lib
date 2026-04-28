@@ -11,7 +11,7 @@ from yt_lib.utils.log_utils import get_logger # , log_tree
 logger = get_logger(__name__)
 
 
-class api_vault(object):
+class ApiVault():
     """A simple API class example."""
 
     def __init__(self,keys_file:str='.env'):
@@ -44,7 +44,7 @@ class api_vault(object):
         return value
 
 if __name__ == "__main__":
-    """ Example usage of the api_vault class to retrieve an API key value. """
-    api = api_vault()
+    # Example usage of the ApiVault class to retrieve an API key value.
+    api = ApiVault()
     key_value = api.get_value("GOOGLE_KEY")
     print(f"The value for Google_Key is: {key_value}")

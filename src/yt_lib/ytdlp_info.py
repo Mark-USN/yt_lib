@@ -12,7 +12,6 @@
 from __future__ import annotations
 
 import json
-import warnings
 from pathlib import Path
 from dataclasses import dataclass, field
 from copy import deepcopy
@@ -23,19 +22,6 @@ from yt_lib.utils.log_utils import get_logger
 
 logger = get_logger(__name__)
 
-
-def warn_deprecated(old_name: str, new_name: str) -> None:
-    """ Helper to issue a consistent deprecation warning.
-        Args:
-            old_name: The name of the deprecated function.
-            new_name: The name of the new function to use.
-    """
-    warnings.warn(
-        f"{old_name}() is deprecated and will be removed in a future release; "
-        f"use {new_name}() instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
 
 # -----------------------------------------------------------------------------
 # Small typed coercion helpers
@@ -758,38 +744,6 @@ def fetch_ytdlp_info(
         include_formats=include_formats,
     )
 
-def fetch_YtdlpInfo_object(
-        url: str,
-        *,
-        format_selector: str = "bestvideo+bestaudio/best",
-        include_raw: bool = True,
-        copy_raw: bool = False,
-        include_formats: bool = True,
-        extra_options: dict[str, Any] | None = None,
-    ) -> YtdlpInfo:
-    """ Fetch yt-dlp info and return a typed YtdlpInfo object.
-        Args:
-            url: The URL to extract info from.
-            format_selector: The format selector string.
-            include_raw: Whether to include the raw info dictionary.
-            copy_raw: Whether to copy the raw info dictionary.
-            include_formats: Whether to include the parsed formats.
-            extra_options: Additional options to pass to yt-dlp.
-        Returns:
-            A YtdlpInfo object containing the typed info.
-    """
-    warn_deprecated(old_name="fetch_YtdlpInfo_object", new_name="fetch_ytdlp_info")
-    return fetch_ytdlp_info(
-                url = url,
-                format_selector = format_selector,
-                include_raw = include_raw,
-                copy_raw = copy_raw,
-                include_formats = include_formats,
-                extra_options = extra_options
-            )
-
-
-
 def _atomic_write_json(path: Path, data: Any, *, encoding: str = "utf-8") -> None:
     """ Write JSON atomically by replacing the target with a temp file.
         Args:
@@ -847,19 +801,6 @@ def write_ytdlp_info(path: Path, info: YtdlpInfo) -> None:
     # Option 1: write the raw dict exactly as received/stored
     write_info(path, raw)
 
-
-def write_YtdlpInfo(path: Path, info: YtdlpInfo) -> None:
-    """ Write a YtdlpInfo object to a JSON file.
-        Args:
-            path: The path to write the JSON file to.
-            info: The YtdlpInfo object to write.
-    """
-    warn_deprecated(old_name="write_YtdlpInfo", new_name="write_ytdlp_info")
-    write_ytdlp_info(
-            path = path,
-            info = info,
-        )
-
 def read_ytdlp_info(path: Path) -> YtdlpInfo | None:
     """ Read a YtdlpInfo object from a JSON file.
         Args: 
@@ -879,14 +820,3 @@ def read_ytdlp_info(path: Path) -> YtdlpInfo | None:
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Error reading YtdlpInfo from %s: %s", path, e)
         return None
-
-
-def read_YtdlpInfo(path: Path) -> YtdlpInfo | None:
-    """ Read a YtdlpInfo object from a JSON file.
-        Args:
-            path: The path to read the JSON file from.
-        Returns:
-            A YtdlpInfo object if the file was read successfully, or None if there was an error.
-    """
-    warn_deprecated(old_name="read_YtdlpInfo", new_name="read_ytdlp_info")
-    return read_ytdlp_info(path = path)

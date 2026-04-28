@@ -21,7 +21,7 @@ from yt_lib.yt_ids import (
         is_playlist_id,
         extract_playlist_id
     )
-from yt_lib.utils.api_keys import api_vault
+from yt_lib.utils.api_keys import ApiVault
 from yt_lib.utils.log_utils import get_logger, log_tree
 logger = get_logger(__name__)
 
@@ -296,10 +296,10 @@ def _get_youtube_client():
         Returns:
             A YouTube API client instance.
     """
-    vault = api_vault()
+    vault = ApiVault()
     google_key = vault.get_value(key="GOOGLE_KEY")
     if not google_key:
-        raise RuntimeError("Missing GOOGLE_KEY from api_vault()")
+        raise RuntimeError("Missing GOOGLE_KEY from ApiVault()")
     return build("youtube", "v3", developerKey=google_key)
 
 
