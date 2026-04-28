@@ -169,7 +169,7 @@
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>        <span class="n">is_playlist_id</span><span class="p">,</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>        <span class="n">extract_playlist_id</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>    <span class="p">)</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.utils.api_keys</span><span class="w"> </span><span class="kn">import</span> <span class="n">api_vault</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.utils.api_keys</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApiVault</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.utils.log_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">log_tree</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>
@@ -444,10 +444,10 @@
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="sd">        Returns:</span>
 </span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a><span class="sd">            A YouTube API client instance.</span>
 </span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a>    <span class="n">vault</span> <span class="o">=</span> <span class="n">api_vault</span><span class="p">()</span>
+</span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a>    <span class="n">vault</span> <span class="o">=</span> <span class="n">ApiVault</span><span class="p">()</span>
 </span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a>    <span class="n">google_key</span> <span class="o">=</span> <span class="n">vault</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;GOOGLE_KEY&quot;</span><span class="p">)</span>
 </span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">google_key</span><span class="p">:</span>
-</span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Missing GOOGLE_KEY from api_vault()&quot;</span><span class="p">)</span>
+</span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Missing GOOGLE_KEY from ApiVault()&quot;</span><span class="p">)</span>
 </span><span id="L-303"><a href="#L-303"><span class="linenos">303</span></a>    <span class="k">return</span> <span class="n">build</span><span class="p">(</span><span class="s2">&quot;youtube&quot;</span><span class="p">,</span> <span class="s2">&quot;v3&quot;</span><span class="p">,</span> <span class="n">developerKey</span><span class="o">=</span><span class="n">google_key</span><span class="p">)</span>
 </span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a>
 </span><span id="L-305"><a href="#L-305"><span class="linenos">305</span></a>
