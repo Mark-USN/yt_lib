@@ -46,7 +46,7 @@ def _round_half_up(value: float | Decimal) -> int:
 
 
 @dataclass(slots=True, frozen=True)
-class RuntimeContext:
+class BaseContext:
     """Resolved runtime context for application paths and locale."""
 
     app_name: str
@@ -139,33 +139,33 @@ def _path_from_env_or_default(env_name: str, default: Path) -> Path:
     return _env_path(env_name) or default
 
 
-def create_user_runtime_context(app_name: str, app_author: str) -> RuntimeContext:
-    """Create a RuntimeContext for a normal user application.
+def create_user_context(app_name: str, app_author: str) -> BaseContext:
+    """Create a BaseContext for a normal user application.
         Args:
             app_name: The name of the application, used for directory paths.
             app_author: The author of the application, used for directory paths.
         Returns:
-            A RuntimeContext object for the user application.
+            A BaseContext object for the user application.
     """
     dirs = PlatformDirs(appname=app_name, appauthor=app_author)
 
     env_prefix = app_name.upper().replace("-", "_")
 
-    return RuntimeContext(
+    return BaseContext(
         app_name=app_name,
         app_author=app_author,
         locale=detect_locale(),
         cache_dir=_path_from_env_or_default(
             f"{env_prefix}_CACHE_DIR",
-            Path(dirs.user_cache_dir),
+            Path(dirs.user_cache_dir)
         ),
         config_dir=_path_from_env_or_default(
             f"{env_prefix}_CONFIG_DIR",
-            Path(dirs.user_config_dir),
+            Path(dirs.user_config_dir)
         ),
         data_dir=_path_from_env_or_default(
             f"{env_prefix}_DATA_DIR",
-            Path(dirs.user_data_dir),
+            Path(dirs.user_data_dir)
         ),
         state_dir=_path_from_env_or_default(
             f"{env_prefix}_STATE_DIR",
@@ -173,22 +173,22 @@ def create_user_runtime_context(app_name: str, app_author: str) -> RuntimeContex
         ),
         log_dir=_path_from_env_or_default(
             f"{env_prefix}_LOG_DIR",
-            Path(dirs.user_log_dir),
+            Path(dirs.user_log_dir)
         ),
         documents_dir=_path_from_env_or_default(
             f"{env_prefix}_DOCUMENTS_DIR",
-            Path(dirs.user_documents_dir),
+            Path(dirs.user_documents_dir)
         ),
     )
 
 
-def create_service_runtime_context(app_name: str, app_author: str) -> RuntimeContext:
-    """Create a RuntimeContext for a Windows or Linux service.
+def create_service_context(app_name: str, app_author: str) -> BaseContext:
+    """Create a BaseContext for a Windows or Linux service.
         Args:
             app_name: The name of the application, used for directory paths.
             app_author: The author of the application, used for directory paths.
         Returns:
-            A RuntimeContext object for the service application.
+            A BaseContext object for the service application.
     """
     env_prefix = app_name.upper().replace("-", "_")
 
@@ -198,7 +198,7 @@ def create_service_runtime_context(app_name: str, app_author: str) -> RuntimeCon
             Path(os.environ.get("PROGRAMDATA", r"C:\ProgramData")) / app_name,
         )
 
-        return RuntimeContext(
+        return BaseContext(
             app_name=app_name,
             app_author=app_author,
             locale=detect_locale(),
@@ -210,7 +210,7 @@ def create_service_runtime_context(app_name: str, app_author: str) -> RuntimeCon
             documents_dir=None,
         )
 
-    return RuntimeContext(
+    return BaseContext(
         app_name=app_name,
         app_author=app_author,
         locale=detect_locale(),
@@ -239,10 +239,10 @@ def create_service_runtime_context(app_name: str, app_author: str) -> RuntimeCon
 
 
 @dataclass(slots=True)
-class RunContextStore:
-    """Convenient shared access to RuntimeContext information."""
+class RuntimeContext:
+    """Convenient shared access to BaseContext information."""
 
-    ctx: RuntimeContext
+    ctx: BaseContext
 
     @property
     def app_name(self) -> str:
@@ -335,6 +335,18 @@ class RunContextStore:
             directory exists.
         """
         return self.vid_info_dir() / f"{video_id}.json"
+
+    def audio_dir(self) -> Path:
+        """Returns the audio directory path, ensuring it exists."""
+        path = self.cache_dir / "audio"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def audio_path(self, audio_file: str) -> Path:
+        """Returns the path to an audio file for a given video ID, ensuring the
+            directory exists.
+        """
+        return self.audio_dir() / audio_file
 
     def format_number(
         self,

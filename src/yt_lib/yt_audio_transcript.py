@@ -15,8 +15,8 @@ from dataclasses import dataclass
 from collections.abc import Callable
 import whisper
 from yt_dlp import YoutubeDL
+from yt_lib.utils.app_context import RuntimeContext
 from yt_lib.utils.ffmpeg_bootstrap import ensure_ffmpeg_on_path, get_ffmpeg_binary_path
-from yt_lib.utils.paths import resolve_cache_paths
 from yt_lib.yt_ids import extract_video_id
 from yt_lib.utils.log_utils import get_logger # , log_tree
 
@@ -25,6 +25,51 @@ from yt_lib.utils.log_utils import get_logger # , log_tree
 # Logging setup
 # -----------------------------
 logger = get_logger(__name__)
+
+
+
+# Global context for cache path provider; must be set by MCP at runtime before use.
+_context: RuntimeContext | None = None
+
+def set_context(context: RuntimeContext) -> None:
+    """ Set the global context for transcript cache path provision. Must be called by MCP at 
+        runtime before using any functions that access the cache.
+        Args:
+            context: An object that implements the TranscriptPathProvider
+                        protocol, providing a method
+    """
+    global _context
+    _context = context
+
+
+def _get_transcript_cache_path(video_id: str) -> Path:
+    """ Get the cache path for a given video ID using the global context.
+        Args:
+            video_id: The YouTube video ID for which to get the transcript cache path.
+        Returns:
+            Path to the transcript cache file for the given video ID.
+        Raises:
+            RuntimeError: If the global context has not been set.
+    """
+    if _context is None:
+        msg = "yt_transcript runtime context has not been initialized."
+        raise RuntimeError(msg)
+
+    return _context.transcript_path(video_id)
+
+def _get_audio_dir() -> Path:
+    """ Folder for temporary storage of yt_dlp audio cache.
+        We delete these if they are over a day old in the code below.
+        Returns:
+            Path to the audio cache directory.
+    """
+    if _context is None:
+        msg = "yt_transcript runtime context has not been initialized."
+        raise RuntimeError(msg)
+
+    return _context.audio_dir()
+
+
 
 PREFERRED_LANGS = ["en", "en-US", "en-GB", "es", "es-419", "es-ES"]
 
@@ -40,30 +85,6 @@ CHUNK_OVERLAP_SECONDS = 5.0
 # # ----------------- Helpers -----------------
 
 # ----------------- Output management -----------------
-
-def _get_audio_dir() -> Path:
-    """ Folder for temporary storage of yt_dlp audio cache.
-        We delete these if they are over a day old in the code below.
-        Returns:
-            Path to the audio cache directory.
-    """
-    return resolve_cache_paths(
-        app_name = "audio",
-        start = Path(__file__)).app_cache_dir
-
-
-def _get_transcript_cache_path(video_id: str) -> Path:
-    """ Return the path to the cached transcript JSON for this video.
-        Args:
-            video_id: The YouTube video ID.
-        Returns:
-            Path to the cached transcript JSON file for this video.
-    """
-
-    return resolve_cache_paths(
-        app_name = "transcripts",
-        start = Path(__file__)).app_cache_dir / f"{video_id}.json"
-
 
 # ----------------- Audio + Whisper -----------------
 

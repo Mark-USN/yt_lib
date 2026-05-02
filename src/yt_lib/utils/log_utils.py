@@ -12,6 +12,15 @@ import os
 import sys
 from typing import Any
 
+# Define here so that they can be used in the LogConfig defaults without circular imports.
+CRITICAL = logging.CRITICAL
+FATAL = logging.FATAL
+ERROR = logging.ERROR
+WARNING = logging.WARNING
+WARN = logging.WARN
+INFO = logging.INFO
+DEBUG = logging.DEBUG
+NOTSET = logging.NOTSET
 
 # -----------------------------------------------------------------------------
 # Public: Logger factory + configuration

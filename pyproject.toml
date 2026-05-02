@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yt-lib"
-version = "0.3.5"
+version = "0.3.7"
 description = "Library files for Youtube transcripts and search."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -21,6 +21,9 @@ dependencies = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/yt_lib"]
+
+# [tool.hatch.build.targets.wheel.force-include]
+# "src/yt_lib/py.typed" = "yt_lib/py.typed"
 
 [dependency-groups]
 dev = [

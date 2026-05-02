@@ -22,7 +22,6 @@ Notes for AI agents:
 from __future__ import annotations
 
 import json
-# import logging
 import os
 import re
 import secrets
@@ -32,7 +31,7 @@ from datetime import timedelta
 from contextlib import contextmanager
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TypedDict
+from typing import TypedDict, Protocol
 # from urllib.parse import parse_qs, urlparse
 from youtube_transcript_api import (
     FetchedTranscript,
@@ -43,11 +42,44 @@ from youtube_transcript_api import (
     YouTubeTranscriptApi,
 )
 from yt_lib.utils.log_utils import get_logger
-from yt_lib.utils.paths import resolve_cache_paths
+from yt_lib.utils.app_context import RuntimeContext
 from yt_lib.yt_ids import extract_video_id
 
 logger = get_logger(__name__)
 
+class TranscriptPathProvider(Protocol):
+    """ Protocol for providing transcript cache paths. This allows the cache path logic"""
+    def transcript_path(self, video_id: str) -> Path: ...
+
+# Global context for cache path provider; must be set by MCP at runtime before use.
+_context: TranscriptPathProvider | None = None
+
+
+def set_context(context: TranscriptPathProvider) -> None:
+    """ Set the global context for transcript cache path provision.
+        Args:
+            context: An object implementing the `TranscriptPathProvider` protocol, which provides
+                    a method `transcript_path(video_id: str) -> Path` to determine where to cache
+                    transcripts for a given video ID.
+    """
+    global _context
+    _context = context
+
+
+def _get_transcript_cache_path(video_id: str) -> Path:
+    """ Get the cache path for a given video ID using the global context.
+        Args:
+            video_id: The YouTube video ID.
+        Returns:
+            File path to the cached transcript JSON for the video.
+        Raises:
+            RuntimeError: If the global context has not been set.
+    """
+    if _context is None:
+        msg = "yt_transcript runtime context has not been initialized."
+        raise RuntimeError(msg)
+
+    return _context.transcript_path(video_id)
 
 # A small, process-wide throttle to avoid overwhelming upstream services when a
 # workflow engine fans out work in parallel.
@@ -145,20 +177,6 @@ def _atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> Non
                 tmp_path.unlink(missing_ok=True)
         except OSError:
             pass
-
-def _get_transcript_cache_path(video_id: str) -> Path:
-    """ Return the path to the cached transcript JSON for this video.
-        Args:
-            video_id: The YouTube video ID.
-        Returns:
-            Path to the cached transcript JSON file (e.g. 
-                "<cache_dir>/transcripts/<video_id>.json").
-    """
-
-    return resolve_cache_paths(
-        app_name = "transcripts",
-        start = Path(__file__)).app_cache_dir / f"{video_id}.json"
-
 
 def _as_raw_snippets(transcript: FetchedTranscript |
                         list[TranscriptSnippet]) -> list[TranscriptSnippet]:
