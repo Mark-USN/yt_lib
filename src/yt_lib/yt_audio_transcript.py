@@ -394,9 +394,9 @@ async def fetch_audio_transcript_async(
             if progress_cb:
                 progress_cb(1.0, "finished")
             return transcript
-        except Exception as exc:  # pylint: disable=broad-exception-caught
+        except Exception as err:  # pylint: disable=broad-exception-caught
             logger.warning("⚠️ Failed to load cached transcript %s: %s; recomputing.",
-                           cache_path, exc)
+                           cache_path, err)
 
     # Ensure ffmpeg on PATH
     if progress_cb:
@@ -440,20 +440,20 @@ async def fetch_audio_transcript_async(
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(chunks, f, ensure_ascii=False, indent=2)
             logger.info("💾 Saved Whisper transcript cache to %s", cache_path)
-        except Exception as exc:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Failed to write transcript cache %s: %s", cache_path, exc)
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            logger.warning("⚠️ Failed to write transcript cache %s: %s", cache_path, err)
     if progress_cb:
         progress_cb(1.0, "finished")
 
     return chunks
 
 
-async def youtube_audio_json(url: str,
+async def yt_audio_json(url: str,
                                    prefer_langs: list[str] | None = None,
                                    *,
                                    progress_cb: Any = None,
                                    ) -> str | None:
-    """ Async version of youtube_audio_json (supports cooperative cancellation).
+    """ Async version of yt_audio_json (supports cooperative cancellation).
         Args:
             url: YouTube video URL.
             prefer_langs: List of preferred languages for transcription.
@@ -472,13 +472,13 @@ async def youtube_audio_json(url: str,
     return json.dumps(chunks, ensure_ascii=False, indent=2)
 
 
-async def youtube_audio_text(url: str,
+async def yt_audio_text(url: str,
                                    prefer_langs: list[str] | None = None,
                                    *,
                                    progress_cb: Any = None,
                                    ) -> str | None:
 
-    """ Async version of youtube_audio_text (supports cooperative cancellation).
+    """ Async version of yt_audio_text (supports cooperative cancellation).
         Args:
             url: YouTube video URL.
             prefer_langs: List of preferred languages for transcription.
@@ -494,7 +494,7 @@ async def youtube_audio_text(url: str,
     chunks = await fetch_audio_transcript_async(url, prefer_langs, progress_cb=cb)
     if chunks is None:
         return None
-    # Same logic as youtube_audio_text: join segment texts
+    # Same logic as yt_audio_text: join segment texts
     full_text_parts: list[str] = []
     for chunk in chunks:
         text_part = (chunk.get("text") or "").strip()
@@ -541,14 +541,14 @@ def test() -> None:
     logger.info("✅ Using ffmpeg at %s", get_ffmpeg_binary_path())
 
     start = time.perf_counter()
-    json_trans = youtube_audio_json(yt_url)
+    json_trans = yt_audio_json(yt_url)
     elapsed = time.perf_counter()-start
     print("\n\n--- JSON AUDIO TRANSCRIPT ---\n")
     print(f"{json_trans}")
     print(f"\n✅ Transcribed in {str(timedelta(seconds=elapsed))} seconds.\n")
 
     start = time.perf_counter()
-    text_trans = youtube_audio_text(yt_url)
+    text_trans = yt_audio_text(yt_url)
     elapsed = time.perf_counter()-start
     print("\n\n--- TEXT AUDIO TRANSCRIPT ---\n")
     print(f"{text_trans}")

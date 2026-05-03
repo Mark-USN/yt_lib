@@ -13,8 +13,8 @@ Environment variables:
 - MCP_CACHE_DIR: override the base cache directory.
 
 Notes for AI agents:
-- The primary public entrypoints (MCP tools) are `youtube_json()` and
-  `youtube_text()`.
+- The primary public entrypoints (MCP tools) are `yt_json()` and
+  `yt_text()`.
 - `fetch_transcript()` is the core I/O function; it returns raw transcript
   snippets as JSON-serializable dictionaries.
 """
@@ -48,7 +48,7 @@ from yt_lib.yt_ids import extract_video_id
 logger = get_logger(__name__)
 
 class TranscriptPathProvider(Protocol):
-    """ Protocol for providing transcript cache paths. This allows the cache path logic"""
+    """Provides transcript cache paths."""
     def transcript_path(self, video_id: str) -> Path: ...
 
 # Global context for cache path provider; must be set by MCP at runtime before use.
@@ -133,8 +133,8 @@ def _file_lock(lock_path: Path):
                 import fcntl  # pylint: disable= import-error, import-outside-toplevel
 
                 fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
-        except Exception as exc:  # pylint: disable=broad-exception-caught
-            logger.debug("⚠️ Cache lock unavailable (%s): %s", lock_path, exc)
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            logger.debug("⚠️ Cache lock unavailable (%s): %s", lock_path, err)
 
         yield
     finally:
@@ -281,19 +281,19 @@ def fetch_transcript(
             # Preferred languages unavailable; we may still be able to fetch some other
             # language or translate.
             pass
-        except Exception as exc:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Transcript fetch failed for %s: %s", video_id, exc)
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            logger.warning("⚠️ Transcript fetch failed for %s: %s", video_id, err)
             return None
 
         # 3) Fallback: list available transcripts; try translating the first available.
         try:
             with _FETCH_SEM:
                 transcript_list = ytt_api.list(video_id)
-        except (TranscriptsDisabled, NoTranscriptFound) as exc:
-            logger.info("✅ No transcripts for %s: %s", video_id, exc)
+        except (TranscriptsDisabled, NoTranscriptFound) as err:
+            logger.info("✅ No transcripts for %s: %s", video_id, err)
             return None
-        except Exception as exc:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Transcript list failed for %s: %s", video_id, exc)
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            logger.warning("⚠️ Transcript list failed for %s: %s", video_id, err)
             return None
 
         # Log available language codes for debugging.
@@ -321,8 +321,8 @@ def fetch_transcript(
             )
             with _FETCH_SEM:
                 fetched = first_tr.fetch(preserve_formatting=True)
-        except Exception as exc:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Transcript fallback fetch failed for %s: %s", video_id, exc)
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            logger.warning("⚠️ Transcript fallback fetch failed for %s: %s", video_id, err)
             return None
 
         return transcript_to_list_and_cache(fetched, cache_path)
@@ -382,7 +382,7 @@ def json_to_sentences(transcript_list: Sequence["TranscriptSnippet"]) -> str:
 
     return "\n".join(sentences)
 
-def youtube_json(
+def yt_json(
     url_or_id: str,
     prefer_langs: Sequence[str] | None = None,
 ) -> list[TranscriptSnippet] | None:
@@ -398,7 +398,7 @@ def youtube_json(
     """
     return fetch_transcript(url_or_id, prefer_langs)
 
-def youtube_text(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> str | None:
+def yt_text(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> str | None:
     """ Return the transcript as a single space-joined string, or None.
         Args:
             url_or_id: YouTube URL or video id.
@@ -415,7 +415,7 @@ def youtube_text(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> s
     return " ".join(snippet.get("text", "") for snippet in transcript_list).strip()
 
 
-def youtube_sentences(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> str | None:
+def yt_sentences(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> str | None:
     """ Return the transcript as paragraph-separated text, or None.
         Args:
             url_or_id: YouTube URL or video id.
@@ -452,22 +452,22 @@ def test() -> None:
             logger.warning("⚠️ Please paste a valid YouTube URL.")
 
     start = time.perf_counter()
-    trans = youtube_json(yt_url)
+    trans = yt_json(yt_url)
     elapsed = time.perf_counter() - start
     print("\n\n--- JSON TRANSCRIPT ---\n")
-    # `youtube_jason()` already returns a JSON string.
+    # `yt_jason()` already returns a JSON string.
     print(trans)
     print(f"\n✅ Transcribed in {timedelta(seconds=elapsed)}.\n")
 
     start = time.perf_counter()
-    trans = youtube_text(yt_url)
+    trans = yt_text(yt_url)
     elapsed = time.perf_counter() - start
     print("\n\n--- TEXT TRANSCRIPT ---\n")
     print(trans)
     print(f"\n✅ Transcribed in {timedelta(seconds=elapsed)}.\n")
 
     start = time.perf_counter()
-    trans = youtube_sentences(yt_url)
+    trans = yt_sentences(yt_url)
     elapsed = time.perf_counter() - start
     print("\n\n--- PARAGRAPH TRANSCRIPT ---\n")
     print(trans)

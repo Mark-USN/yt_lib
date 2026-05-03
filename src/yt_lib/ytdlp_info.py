@@ -817,6 +817,6 @@ def read_ytdlp_info(path: Path) -> YtdlpInfo | None:
             copy_raw=False,
             include_formats=True,
         )
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        logger.warning("Error reading YtdlpInfo from %s: %s", path, e)
+    except Exception as err:  # pylint: disable=broad-exception-caught
+        logger.warning("Error reading YtdlpInfo from %s: %s", path, err)
         return None

@@ -27,9 +27,9 @@ class ApiVault():
             if dotenv.load_dotenv(self.keys_path):
                 self.keys = dotenv.dotenv_values()
 
-        except Exception as e:
-            logger.error("Error loading keys from %s: %s", keys_file, e)
-            raise e
+        except Exception as err:
+            logger.error("Error loading keys from %s: %s", keys_file, err)
+            raise err
 
     def get_value(self, key:str):
         """ Retrieve the value of a specific API key.

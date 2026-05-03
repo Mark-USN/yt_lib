@@ -295,8 +295,8 @@ def format_tree(
             return s if len(s) <= max_str else f"{s[: max_str - 1]} "
         try:
             r = repr(v)
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            r = f"<repr failed: {type(e).__name__}: {e}>"
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            r = f"<repr failed: {type(err).__name__}: {err}>"
         return r if len(r) <= max_str else f"{r[: max_str - 1]} "
 
     def _is_seq(v: object) -> bool:
@@ -544,8 +544,8 @@ def _safe_value(v: object) -> str:
     """
     try:
         s = str(v)
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        return f"<str failed: {type(e).__name__}: {e}>"
+    except Exception as err:  # pylint: disable=broad-exception-caught
+        return f"<str failed: {type(err).__name__}: {err}>"
     return s.replace("\n", "\\n")
 
 

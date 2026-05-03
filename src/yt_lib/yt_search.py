@@ -57,8 +57,8 @@ def yt_execute(req, *, label: str = "") -> dict[str, Any]:
                     redact_keys={"token", "api_key"},
                 )
             return resp
-    except Exception as exc:  # pylint: disable=broad-exception-caught
-        logger.warning("⚠️ %s failed with %s", getattr(req, "method", ""), exc)
+    except Exception as err:  # pylint: disable=broad-exception-caught
+        logger.warning("⚠️ %s failed with %s", getattr(req, "method", ""), err)
         return {}
 
 
@@ -104,8 +104,8 @@ class YtOrder(str, Enum):
         v = str(value).strip().upper()
         try:
             return cls(v)
-        except Exception as exc:
-            raise ValueError(f"Invalid YtOrder {value!r}. Valid: {[e.value for e in cls]}") from exc
+        except Exception as err:
+            raise ValueError(f"Invalid YtOrder {value!r}. Valid: {[e.value for e in cls]}") from err
 
     @classmethod
     def help_text(cls) -> str:
@@ -144,9 +144,9 @@ class SearchKind(str, Enum):
             return aliases[raw]
         try:
             return cls(raw)
-        except Exception as exc:
+        except Exception as err:
             raise ValueError(f"Invalid SearchKind {value!r}. Valid: "
-                             "{[e.value for e in cls]}") from exc
+                             "{[e.value for e in cls]}") from err
 
 
 # ---------------------------------------------------------------------------
@@ -379,7 +379,7 @@ def _get_playlist_details(youtube,
 
 
 # CHANGE #1 (cleaned helper you restored):
-def youtube_get_playlist_videos(
+def yt_get_playlist_videos(
     youtube,
     playlist_id: str,
     *,
@@ -601,7 +601,7 @@ def enrich_search_items(youtube, search_items: list[dict[str, Any]]) -> list[dic
     return out
 
 
-def youtube_search(
+def yt_search(
     query: Annotated[
         str,
         Field(
@@ -661,7 +661,6 @@ def youtube_search(
             collapse_keys={"env"},  # env can be huge/noisy
             redact_keys={"token", "api_key"},
         )
-        # log_tool_result("youtube_search", result, level=logging.DEBUG)
 
         return result
 
@@ -677,11 +676,10 @@ def youtube_search(
         "errors": [],
     }
 
-    # log_tool_result("youtube_search", result, level=logging.DEBUG)
     return result
 
 
-def youtube_video_info(
+def yt_video_info(
     inputs: Annotated[list[str], Field(description="List of YouTube video URLs or video IDs.")],
 ) -> dict[str, Any]:
     """ Return full metadata for one or many videos.
@@ -709,11 +707,10 @@ def youtube_video_info(
         "errors": errors,
     }
 
-    # log_tool_result("youtube_video_info", result, level=logging.DEBUG)
     return result
 
 
-def youtube_playlist_info(
+def yt_playlist_info(
     playlist: Annotated[
         str | list[str],
         Field(description="Playlist URL/ID or list of playlist URLs/IDs."),
@@ -761,17 +758,13 @@ def youtube_playlist_info(
 
     if isinstance(playlist, list):
         result: dict[str, Any] | list[dict[str, Any]] = out
-        # log_tool_result("youtube_playlist_info", {"playlist_ids_count": len(out),
-        # "items": out}, level=logging.DEBUG)
     else:
         result = out[0] if out else {}
-        # log_tool_result("youtube_playlist_info", {"playlist_ids_count": 1,
-        # "items": [result]}, level=logging.DEBUG)
 
     return result
 
 
-def youtube_playlist_video_list(
+def yt_playlist_video_list(
     playlist: Annotated[
         str | list[str],
         Field(description="Playlist URL/ID or list of playlist URLs/IDs."),
@@ -827,7 +820,7 @@ def youtube_playlist_video_list(
             })
             continue
 
-        pl_items, pl_errs = youtube_get_playlist_videos(youtube, pid, max_videos=max_videos)
+        pl_items, pl_errs = yt_get_playlist_videos(youtube, pid, max_videos=max_videos)
         errors.extend(pl_errs)
 
         # Shape playlistItems rows
@@ -838,7 +831,7 @@ def youtube_playlist_video_list(
                 continue
             pl_video[vid] = _shape_playlist_video_entry(pid, itm)
 
-        # Enrich using videos.list (same fields as youtube_video_info)
+        # Enrich using videos.list (same fields as yt_video_info)
         video_ids = list(pl_video.keys())
         if video_ids:
             v_items, v_errs = _get_video_details(youtube, video_ids)
@@ -880,9 +873,8 @@ def test() -> None:
     """Simple CLI entry point."""
     yt_search = "Python tutorials about list comprehension -shorts"
 
-    logger.info("Executing youtube_search(query=%s)", yt_search)
-    sr = youtube_search(query=yt_search, order="date", max_results=5, kinds="video,playlist")
-    # log_tool_result("youtube_search", sr, level=logging.INFO)
+    logger.info("Executing yt_search(query=%s)", yt_search)
+    sr = yt_search(query=yt_search, order="date", max_results=5, kinds="video,playlist")
 
     playlist_ids = [it.get("playlist_id") for it in sr.get("items", []) if
                     it.get("kind") == "playlist"]
@@ -890,7 +882,7 @@ def test() -> None:
 
     if playlist_ids:
         logger.info("Fetching playlist info only (no expansion)")
-        pi = youtube_playlist_info(playlist=playlist_ids[:2])
+        pi = yt_playlist_info(playlist=playlist_ids[:2])
         if isinstance(pi, dict):
             log_tree(
                         logger = logging.Logger,
@@ -900,7 +892,7 @@ def test() -> None:
                     )
 
         logger.info("Expanding playlist videos (opt-in)")
-        pv = youtube_playlist_video_list(playlist=playlist_ids[0], max_videos=10)
+        pv = yt_playlist_video_list(playlist=playlist_ids[0], max_videos=10)
         if isinstance(pv, dict):
             log_tree(
                         logger = logging.Logger,
@@ -914,9 +906,9 @@ def test() -> None:
 # -------------------------------------------------------------------------------
 
 
-    logger.info("Executing youtube_search(query=%s)", yt_search)
-    sr = youtube_search(query=yt_search, order="date", max_results=5, kinds="playlist")
-    pi = youtube_playlist_video_list(playlist=playlist_ids[0], max_videos=10)
+    logger.info("Executing yt_search(query=%s)", yt_search)
+    sr = yt_search(query=yt_search, order="date", max_results=5, kinds="playlist")
+    pi = yt_playlist_video_list(playlist=playlist_ids[0], max_videos=10)
     if isinstance(pi, dict):
         log_tree(
                     logger = logging.Logger,
