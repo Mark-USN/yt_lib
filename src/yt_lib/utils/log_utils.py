@@ -55,7 +55,7 @@ class LogConfig:
 @dataclass(frozen=True, slots=True)
 class FileLogConfig:
     """ Configuration for file-based logging. """
-    log_file: Path
+    log_file: Path = None
     max_bytes: int = 5_000_000
     backup_count: int = 5
     encoding: str = "utf-8"

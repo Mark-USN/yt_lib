@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yt-lib"
-version = "0.3.10"
+version = "0.3.11"
 description = "Library files for Utilities and Youtube: transcripts, search, and information."
 readme = "README.md"
 requires-python = ">=3.14"
