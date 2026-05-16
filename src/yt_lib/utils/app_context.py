@@ -51,6 +51,7 @@ class BaseContext:
 
     app_name: str
     app_author: str
+    app_dir:Path
     locale: str
     cache_dir: Path
     config_dir: Path
@@ -139,7 +140,7 @@ def _path_from_env_or_default(env_name: str, default: Path) -> Path:
     return _env_path(env_name) or default
 
 
-def create_user_context(app_name: str, app_author: str) -> BaseContext:
+def create_user_context(app_name: str, app_author: str, app_dir: Path | str) -> BaseContext:
     """Create a BaseContext for a normal user application.
         Args:
             app_name: The name of the application, used for directory paths.
@@ -154,6 +155,7 @@ def create_user_context(app_name: str, app_author: str) -> BaseContext:
     return BaseContext(
         app_name=app_name,
         app_author=app_author,
+        app_dir=Path(app_dir).resolve(),
         locale=detect_locale(),
         cache_dir=_path_from_env_or_default(
             f"{env_prefix}_CACHE_DIR",
@@ -182,7 +184,7 @@ def create_user_context(app_name: str, app_author: str) -> BaseContext:
     )
 
 
-def create_service_context(app_name: str, app_author: str) -> BaseContext:
+def create_service_context(app_name: str, app_author: str, app_dir) -> BaseContext:
     """Create a BaseContext for a Windows or Linux service.
         Args:
             app_name: The name of the application, used for directory paths.
@@ -201,6 +203,7 @@ def create_service_context(app_name: str, app_author: str) -> BaseContext:
         return BaseContext(
             app_name=app_name,
             app_author=app_author,
+            app_dir=Path(app_dir).resolve(),
             locale=detect_locale(),
             cache_dir=_path_from_env_or_default(f"{env_prefix}_CACHE_DIR", base / "cache"),
             config_dir=_path_from_env_or_default(f"{env_prefix}_CONFIG_DIR", base / "config"),
@@ -213,6 +216,7 @@ def create_service_context(app_name: str, app_author: str) -> BaseContext:
     return BaseContext(
         app_name=app_name,
         app_author=app_author,
+        app_dir=Path(app_dir).resolve(),
         locale=detect_locale(),
         cache_dir=_path_from_env_or_default(
             f"{env_prefix}_CACHE_DIR",
@@ -260,6 +264,13 @@ class RuntimeContext:
         return self.ctx.locale
 
     @property
+    def app_dir(self) -> Path:
+        """Returns the application root directory path, ensuring it exists."""
+        path = self.ctx.app_dir
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
     def cache_dir(self) -> Path:
         """Returns the cache directory path, ensuring it exists."""
         path = self.ctx.cache_dir
@@ -293,6 +304,14 @@ class RuntimeContext:
         path = self.ctx.log_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
+
+    def log_path(self) -> Path:
+        """ Returns the path to a file in the log directory, ensuring the
+            directory exists.
+        
+        """
+        return self.log_dir / f"{self.app_name}.log"
+
 
     @property
     def documents_dir(self) -> Path:

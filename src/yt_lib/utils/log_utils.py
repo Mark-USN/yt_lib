@@ -12,6 +12,8 @@ import os
 import sys
 from typing import Any
 
+Logger = logging.Logger
+
 # Define here so that they can be used in the LogConfig defaults without circular imports.
 CRITICAL = logging.CRITICAL
 FATAL = logging.FATAL
@@ -34,8 +36,8 @@ _DEFAULT_LEVEL = os.environ.get("MCP_LOG_LEVEL", "INFO").upper()
 class LogConfig:
     """ Central logging policy for the whole app/library."""
 
-    root: str = _DEFAULT_ROOT
-    level: str = _DEFAULT_LEVEL
+    log_root: str = _DEFAULT_ROOT
+    log_level: str = _DEFAULT_LEVEL
     # One place to define the default formatter for the entire project.
     fmt: str = (
         "%(asctime)s %(levelname)s %(name)s"
@@ -50,14 +52,19 @@ class LogConfig:
     tree_max_items: int = 50
     tree_max_str: int = 220
 
-
 @dataclass(frozen=True, slots=True)
 class FileLogConfig:
     """ Configuration for file-based logging. """
-    path: Path
+    log_file: Path
     max_bytes: int = 5_000_000
     backup_count: int = 5
     encoding: str = "utf-8"
+    @property
+    def log_file(self) -> Path:
+        """Returns the log file path, ensuring its parent directory exists."""
+        path = self.log_file if isinstance(self.log_file, Path) else Path(self.log_file)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return path
 
 
 class ContextAdapter(logging.LoggerAdapter):
@@ -89,8 +96,8 @@ class ContextAdapter(logging.LoggerAdapter):
 def configure_logging(
                         cfg: LogConfig | None = None,
                         *,
+                        file_log_conf: FileLogConfig | None = None,
                         force: bool = False,
-                        file: FileLogConfig | None = None,
                         tee_console: bool = True,
                     ) -> None:
 
@@ -112,7 +119,7 @@ def configure_logging(
     if root_logger.handlers and not force:
         return
 
-    level = _parse_level(cfg.level)
+    level = _parse_level(cfg.log_level)
     root_logger.setLevel(level)
 
     if force:
@@ -126,13 +133,12 @@ def configure_logging(
         sh.setFormatter(formatter)
         root_logger.addHandler(sh)
 
-    if file is not None:
-        file.path.parent.mkdir(parents=True, exist_ok=True)
+    if file_log_conf is not None:
         fh = RotatingFileHandler(
-            file.path,
-            maxBytes=file.max_bytes,
-            backupCount=file.backup_count,
-            encoding=file.encoding,
+            file_log_conf.log_file,
+            maxBytes=file_log_conf.max_bytes,
+            backupCount=file_log_conf.backup_count,
+            encoding=file_log_conf.encoding,
         )
         fh.setLevel(level)
         fh.setFormatter(formatter)
@@ -149,7 +155,7 @@ def get_logger(
     cfg: LogConfig | None = None,
     child: str | None = None,
     **context: object,
-) -> logging.Logger:
+) -> Logger:
     """ Factory: return a logger with project policy applied.
         Args:
             name: The name of the logger.
@@ -166,7 +172,7 @@ def get_logger(
     """
     cfg = cfg or LogConfig()
 
-    full_name = _normalize_name(name, root=cfg.root)
+    full_name = _normalize_name(name, root=cfg.log_root)
     base = logging.getLogger(full_name)
     if child:
         base = base.getChild(child)
@@ -174,7 +180,7 @@ def get_logger(
     return ContextAdapter(base, context) if context else base
 
 
-def bind(logger: logging.Logger, **context: object) -> logging.Logger:
+def bind(logger: logging.Logger, **context: object) -> Logger:
     """ Add/override context on an existing logger.
         Args:
             logger: The logger instance to bind context to.

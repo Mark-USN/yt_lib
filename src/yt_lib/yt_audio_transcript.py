@@ -10,12 +10,12 @@ import asyncio
 import concurrent.futures
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 from dataclasses import dataclass
 from collections.abc import Callable
 import whisper
 from yt_dlp import YoutubeDL
-from yt_lib.utils.app_context import RuntimeContext
+# from yt_lib.utils.app_context import RuntimeContext
 from yt_lib.utils.ffmpeg_bootstrap import ensure_ffmpeg_on_path, get_ffmpeg_binary_path
 from yt_lib.yt_ids import extract_video_id
 from yt_lib.utils.log_utils import get_logger # , log_tree
@@ -28,34 +28,64 @@ logger = get_logger(__name__)
 
 
 
-# Global context for cache path provider; must be set by MCP at runtime before use.
-_context: RuntimeContext | None = None
 
-def set_context(context: RuntimeContext) -> None:
-    """ Set the global context for transcript cache path provision. Must be called by MCP at 
-        runtime before using any functions that access the cache.
-        Args:
-            context: An object that implements the TranscriptPathProvider
-                        protocol, providing a method
+class PathProvider(Protocol):
+    """ Prototype to translate app_context methods into a simple protocol for this module,
+        to avoid a hard dependency on the full app context. 
     """
-    global _context
-    _context = context
+    def transcript_path(self, video_id: str) -> Path: ...
+    """ Directory and file name to 'cache' transcripts for a given video ID.
+        Args:
+            video_id: The YouTube video ID for which to provide a transcript cache path.
+        Returns:
+            A Path object representing the file path where the transcript for the given video
+            ID should be cached.
+    """
+    def audio_dir(self) -> Path: ...
+    """ Directory to temperary store audio files for a given video ID.
+        Returns:
+            A Path object representing the directory where audio files for the given video
+            ID should be stored.
+    """
+    def audio_path(self, audio_file: str) -> Path: ...
+    """ Directory and file name to temperarily store audio files for a given video ID.
+        Args:
+            audio_file: The name of the audio file.
+        Returns:
+            A Path object representing the file path where the audio file for a video
+            ID should be stored.
+    """
 
+
+# Global context for cache path provider; must be set by MCP at runtime before use.
+_CONTEXT: PathProvider | None = None
+
+
+def set_context(context: PathProvider) -> None:
+    """ Set the global context for transcript cache path provision.
+        Args:
+            context: An object implementing the `TranscriptPathProvider` protocol, which provides
+                    a method `transcript_path(video_id: str) -> Path` to determine where to cache
+                    transcripts for a given video ID.
+    """
+    global _CONTEXT
+    _CONTEXT = context
 
 def _get_transcript_cache_path(video_id: str) -> Path:
     """ Get the cache path for a given video ID using the global context.
         Args:
-            video_id: The YouTube video ID for which to get the transcript cache path.
+            video_id: The YouTube video ID.
         Returns:
-            Path to the transcript cache file for the given video ID.
+            File path to the cached transcript JSON for the video.
         Raises:
             RuntimeError: If the global context has not been set.
     """
-    if _context is None:
+    if _CONTEXT is None:
         msg = "yt_transcript runtime context has not been initialized."
         raise RuntimeError(msg)
 
-    return _context.transcript_path(video_id)
+    return _CONTEXT.transcript_path(video_id)
+
 
 def _get_audio_dir() -> Path:
     """ Folder for temporary storage of yt_dlp audio cache.
@@ -63,11 +93,11 @@ def _get_audio_dir() -> Path:
         Returns:
             Path to the audio cache directory.
     """
-    if _context is None:
+    if _CONTEXT is None:
         msg = "yt_transcript runtime context has not been initialized."
         raise RuntimeError(msg)
 
-    return _context.audio_dir()
+    return _CONTEXT.audio_dir()
 
 
 
@@ -329,7 +359,7 @@ async def transcribe_with_whisper_async(
                 except asyncio.CancelledError:
                     # Best effort cleanup; note: a chunk already running in the worker
                     # thread will still run to completion, but we stop awaiting more work.
-                    logger.info("🛑 Transcription cancelled during chunk %d.", chunk_index)
+                    logger.info("Transcription cancelled during chunk %d.", chunk_index)
                     raise
 
                 chunks.append(chunk)
@@ -388,14 +418,14 @@ async def fetch_audio_transcript_async(
     cache_path = _get_transcript_cache_path(video_id)
 
     if cache_path.exists():
-        logger.info("✅ Using cached Whisper transcript for %s", video_id)
+        logger.info("Using cached Whisper transcript for %s", video_id)
         try:
             transcript = json.loads(cache_path.read_text(encoding="utf-8"))
             if progress_cb:
                 progress_cb(1.0, "finished")
             return transcript
         except Exception as err:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Failed to load cached transcript %s: %s; recomputing.",
+            logger.warning("Failed to load cached transcript %s: %s; recomputing.",
                            cache_path, err)
 
     # Ensure ffmpeg on PATH
@@ -403,13 +433,13 @@ async def fetch_audio_transcript_async(
         progress_cb(0.01, "downloading audio")
 
     ffmpeg_dir = ensure_ffmpeg_on_path()
-    logger.info("✅ Using ffmpeg from: %s", ffmpeg_dir)
+    logger.info("Using ffmpeg from: %s", ffmpeg_dir)
 
     # Download audio (blocking) -> worker thread
     try:
         audio_path = await asyncio.to_thread(download_audio, url, video_id)
     except asyncio.CancelledError:
-        logger.info("🛑 Cancelled during audio download.")
+        logger.info("Cancelled during audio download.")
         raise
 
     # Yield after download so cancellation can be observed immediately.
@@ -439,9 +469,9 @@ async def fetch_audio_transcript_async(
         try:
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(chunks, f, ensure_ascii=False, indent=2)
-            logger.info("💾 Saved Whisper transcript cache to %s", cache_path)
+            logger.info("Saved Whisper transcript cache to %s", cache_path)
         except Exception as err:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Failed to write transcript cache %s: %s", cache_path, err)
+            logger.warning("Failed to write transcript cache %s: %s", cache_path, err)
     if progress_cb:
         progress_cb(1.0, "finished")
 
@@ -530,29 +560,29 @@ def test() -> None:
     while not yt_url:
         yt_url = input("Enter YouTube URL: ").strip()
         if not yt_url:
-            logger.warning("⚠️ Please paste a valid YouTube URL.")
+            logger.warning("Please paste a valid YouTube URL.")
 
     ffmpeg_path = ensure_ffmpeg_on_path()
     if not ffmpeg_path:
         raise SystemExit(
-            "❌ FFmpeg is not available. Please install "
+            "FFmpeg is not available. Please install "
             "FFmpeg and ensure it is on the system PATH."
         )
-    logger.info("✅ Using ffmpeg at %s", get_ffmpeg_binary_path())
+    logger.info("Using ffmpeg at %s", get_ffmpeg_binary_path())
 
     start = time.perf_counter()
     json_trans = yt_audio_json(yt_url)
     elapsed = time.perf_counter()-start
     print("\n\n--- JSON AUDIO TRANSCRIPT ---\n")
     print(f"{json_trans}")
-    print(f"\n✅ Transcribed in {str(timedelta(seconds=elapsed))} seconds.\n")
+    print(f"\nTranscribed in {str(timedelta(seconds=elapsed))} seconds.\n")
 
     start = time.perf_counter()
     text_trans = yt_audio_text(yt_url)
     elapsed = time.perf_counter()-start
     print("\n\n--- TEXT AUDIO TRANSCRIPT ---\n")
     print(f"{text_trans}")
-    print(f"\n✅ Transcribed in {str(timedelta(seconds=elapsed))} seconds.\n")
+    print(f"\nTranscribed in {str(timedelta(seconds=elapsed))} seconds.\n")
 
 if __name__ == "__main__":
     test()

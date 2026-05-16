@@ -42,17 +42,27 @@ from youtube_transcript_api import (
     YouTubeTranscriptApi,
 )
 from yt_lib.utils.log_utils import get_logger
-from yt_lib.utils.app_context import RuntimeContext
+# from yt_lib.utils.app_context import RuntimeContext
 from yt_lib.yt_ids import extract_video_id
 
 logger = get_logger(__name__)
 
 class TranscriptPathProvider(Protocol):
-    """Provides transcript cache paths."""
+    """ Prototype to translate app_context methods into a simple protocol for this module,
+        to avoid a hard dependency on the full app context. 
+    """
     def transcript_path(self, video_id: str) -> Path: ...
+    """ Directory and file name to 'cache' transcripts for a given video ID.
+        Args:
+            video_id: The YouTube video ID for which to provide a transcript cache path.
+        Returns:
+            A Path object representing the file path where the transcript for the given video
+            ID should be cached.
+    """
+
 
 # Global context for cache path provider; must be set by MCP at runtime before use.
-_context: TranscriptPathProvider | None = None
+_CONTEXT: TranscriptPathProvider | None = None
 
 
 def set_context(context: TranscriptPathProvider) -> None:
@@ -62,8 +72,8 @@ def set_context(context: TranscriptPathProvider) -> None:
                     a method `transcript_path(video_id: str) -> Path` to determine where to cache
                     transcripts for a given video ID.
     """
-    global _context
-    _context = context
+    global _CONTEXT
+    _CONTEXT = context
 
 
 def _get_transcript_cache_path(video_id: str) -> Path:
@@ -75,11 +85,11 @@ def _get_transcript_cache_path(video_id: str) -> Path:
         Raises:
             RuntimeError: If the global context has not been set.
     """
-    if _context is None:
+    if _CONTEXT is None:
         msg = "yt_transcript runtime context has not been initialized."
         raise RuntimeError(msg)
 
-    return _context.transcript_path(video_id)
+    return _CONTEXT.transcript_path(video_id)
 
 # A small, process-wide throttle to avoid overwhelming upstream services when a
 # workflow engine fans out work in parallel.
@@ -134,7 +144,7 @@ def _file_lock(lock_path: Path):
 
                 fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
         except Exception as err:  # pylint: disable=broad-exception-caught
-            logger.debug("⚠️ Cache lock unavailable (%s): %s", lock_path, err)
+            logger.debug("Cache lock unavailable (%s): %s", lock_path, err)
 
         yield
     finally:
@@ -217,9 +227,9 @@ def transcript_to_list_and_cache(
             cache_path,
             json.dumps(transcript_list, ensure_ascii=False, indent=2),
         )
-        logger.info("💾 Saved transcript cache to %s", cache_path)
+        logger.info("Saved transcript cache to %s", cache_path)
     except OSError as exc:
-        logger.warning("⚠️ Failed to write transcript cache %s: %s", cache_path, exc)
+        logger.warning("Failed to write transcript cache %s: %s", cache_path, exc)
 
     return transcript_list
 
@@ -254,11 +264,11 @@ def fetch_transcript(
                 cached = json.loads(cache_path.read_text(encoding="utf-8"))
                 if isinstance(cached, list):
                     cache_path.touch()
-                    logger.info("✅ Using cached transcript for %s", video_id)
+                    logger.info("Using cached transcript for %s", video_id)
                     return cached  # type: ignore[return-value]
             except (OSError, json.JSONDecodeError) as exc:  # pylint: disable=broad-exception-caught
                 logger.warning(
-                    "⚠️ Failed to load cached transcript %s: %s; recomputing.",
+                    "Failed to load cached transcript %s: %s; recomputing.",
                     cache_path,
                     exc,
                 )
@@ -275,14 +285,14 @@ def fetch_transcript(
                 )
             return transcript_to_list_and_cache(fetched, cache_path)
         except TranscriptsDisabled:
-            logger.info("✅ Transcripts disabled for %s", video_id)
+            logger.info("Transcripts disabled for %s", video_id)
             return None
         except NoTranscriptFound:
             # Preferred languages unavailable; we may still be able to fetch some other
             # language or translate.
             pass
         except Exception as err:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Transcript fetch failed for %s: %s", video_id, err)
+            logger.warning("Transcript fetch failed for %s: %s", video_id, err)
             return None
 
         # 3) Fallback: list available transcripts; try translating the first available.
@@ -290,16 +300,16 @@ def fetch_transcript(
             with _FETCH_SEM:
                 transcript_list = ytt_api.list(video_id)
         except (TranscriptsDisabled, NoTranscriptFound) as err:
-            logger.info("✅ No transcripts for %s: %s", video_id, err)
+            logger.info("No transcripts for %s: %s", video_id, err)
             return None
         except Exception as err:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Transcript list failed for %s: %s", video_id, err)
+            logger.warning("Transcript list failed for %s: %s", video_id, err)
             return None
 
         # Log available language codes for debugging.
         try:
             available_langs = [getattr(tr, "language_code", "?") for tr in transcript_list]
-            logger.debug("✅ Available languages for %s: %s", video_id, available_langs)
+            logger.debug("Available languages for %s: %s", video_id, available_langs)
         except Exception:  # pylint: disable=broad-exception-caught
             pass
 
@@ -316,13 +326,13 @@ def fetch_transcript(
                     fetched = first_tr.fetch(preserve_formatting=True)
         except (NotTranslatable, TranslationLanguageNotAvailable):
             logger.warning(
-                "⚠️ Translation failed; returning subtitles in original language %s.",
+                "Translation failed; returning subtitles in original language %s.",
                 getattr(first_tr, "language_code", "?"),
             )
             with _FETCH_SEM:
                 fetched = first_tr.fetch(preserve_formatting=True)
         except Exception as err:  # pylint: disable=broad-exception-caught
-            logger.warning("⚠️ Transcript fallback fetch failed for %s: %s", video_id, err)
+            logger.warning("Transcript fallback fetch failed for %s: %s", video_id, err)
             return None
 
         return transcript_to_list_and_cache(fetched, cache_path)
@@ -449,7 +459,7 @@ def test() -> None:
     while not yt_url:
         yt_url = input("Enter YouTube URL: ").strip()
         if not yt_url:
-            logger.warning("⚠️ Please paste a valid YouTube URL.")
+            logger.warning("Please paste a valid YouTube URL.")
 
     start = time.perf_counter()
     trans = yt_json(yt_url)
@@ -457,21 +467,21 @@ def test() -> None:
     print("\n\n--- JSON TRANSCRIPT ---\n")
     # `yt_jason()` already returns a JSON string.
     print(trans)
-    print(f"\n✅ Transcribed in {timedelta(seconds=elapsed)}.\n")
+    print(f"\nTranscribed in {timedelta(seconds=elapsed)}.\n")
 
     start = time.perf_counter()
     trans = yt_text(yt_url)
     elapsed = time.perf_counter() - start
     print("\n\n--- TEXT TRANSCRIPT ---\n")
     print(trans)
-    print(f"\n✅ Transcribed in {timedelta(seconds=elapsed)}.\n")
+    print(f"\nTranscribed in {timedelta(seconds=elapsed)}.\n")
 
     start = time.perf_counter()
     trans = yt_sentences(yt_url)
     elapsed = time.perf_counter() - start
     print("\n\n--- PARAGRAPH TRANSCRIPT ---\n")
     print(trans)
-    print(f"\n✅ Transcribed in {timedelta(seconds=elapsed)}.\n")
+    print(f"\nTranscribed in {timedelta(seconds=elapsed)}.\n")
 
 
 if __name__ == "__main__":

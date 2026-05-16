@@ -58,7 +58,7 @@ def yt_execute(req, *, label: str = "") -> dict[str, Any]:
                 )
             return resp
     except Exception as err:  # pylint: disable=broad-exception-caught
-        logger.warning("⚠️ %s failed with %s", getattr(req, "method", ""), err)
+        logger.warning("%s failed with %s", getattr(req, "method", ""), err)
         return {}
 
 
@@ -871,10 +871,10 @@ def yt_playlist_video_list(
 
 def test() -> None:
     """Simple CLI entry point."""
-    yt_search = "Python tutorials about list comprehension -shorts"
+    query = "Python tutorials about list comprehension -shorts"
 
-    logger.info("Executing yt_search(query=%s)", yt_search)
-    sr = yt_search(query=yt_search, order="date", max_results=5, kinds="video,playlist")
+    logger.info("Executing yt_search(query=%s)", query)
+    sr = yt_search(query=query, order="date", max_results=5, kinds="video,playlist")
 
     playlist_ids = [it.get("playlist_id") for it in sr.get("items", []) if
                     it.get("kind") == "playlist"]
@@ -906,8 +906,8 @@ def test() -> None:
 # -------------------------------------------------------------------------------
 
 
-    logger.info("Executing yt_search(query=%s)", yt_search)
-    sr = yt_search(query=yt_search, order="date", max_results=5, kinds="playlist")
+    logger.info("Executing yt_search(query=%s)", query)
+    sr = yt_search(query=query, order="date", max_results=5, kinds="playlist")
     pi = yt_playlist_video_list(playlist=playlist_ids[0], max_videos=10)
     if isinstance(pi, dict):
         log_tree(
