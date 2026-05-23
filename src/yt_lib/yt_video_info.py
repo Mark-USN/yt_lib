@@ -137,15 +137,19 @@ def _kbps_to_mbps(kbps: float) -> float:
 def build_ytdlp_options(
     *,
     format_selector: str = "bestvideo+bestaudio/best",
+    extractor_args: dict[str, dict[str, list[str]]] | None = None,
+    # remote_components: dict[str, str] | None = None,
     quiet: bool = True,
     no_warnings: bool = True,
     skip_download: bool = True,
     no_progress: bool = True,
-    include_logger: bool = True,
+    include_logger: bool = False,
 ) -> dict[str, Any]:
-    """ Build YoutubeDL options for metadata-only extraction.
+    """ Build yt-dlp options for metadata extraction.
         Args:
             format_selector: The yt-dlp format selector string to control selection logic.
+            extractor_args: Custom extractor arguments to pass to yt-dlp.
+            remote_components: Custom remote components to pass to yt-dlp.
             quiet: Whether to suppress output messages.
             no_warnings: Whether to suppress warning messages.
             skip_download: Whether to skip actual downloading of media.
@@ -153,24 +157,23 @@ def build_ytdlp_options(
             include_logger: Whether to include a logger in the options.
         Returns:
             A dictionary of options suitable for passing to `YoutubeDL`.
-        Notes:
-        - The earlier `ytdlp_opts` dataclass version was not suitable because
-          `YoutubeDL(...)` expects a mapping, not an iterable dataclass.
-        - `format_selector` controls yt-dlp's preferred selection logic.
     """
+
+
     options: dict[str, Any] = {
+        "format": format_selector,
         "quiet": quiet,
         "no_warnings": no_warnings,
         "skip_download": skip_download,
         "noprogress": no_progress,
-        "format": format_selector,
     }
+    if extractor_args is not None:
+        options["extractor_args"] = extractor_args
 
     if include_logger:
         options["logger"] = logger
 
     return options
-
 
 def fetch_yt_dlp_info(
     url: str,
@@ -204,7 +207,7 @@ def fetch_yt_dlp_info(
 # -----------------------------------------------------------------------------
 
 @dataclass(slots=True, frozen=True)
-class YtdlpFormat:
+class VideoFormat:
     """ Typed view of one yt-dlp format entry."""
 
     format_id: str | None = None
@@ -292,14 +295,14 @@ class YtdlpFormat:
         return self.is_video and self.is_audio
 
 
-def format_from_dict(data: dict[str, Any]) -> YtdlpFormat:
+def format_from_dict(data: dict[str, Any]) -> VideoFormat:
     """ Convert one raw yt-dlp format mapping to a typed format object.
         Args:
             data: A dictionary representing a yt-dlp format entry.
         Returns:
-            A YtdlpFormat object representing the format entry.
+            A VideoFormat object representing the format entry.
     """
-    return YtdlpFormat(
+    return VideoFormat(
         format_id=_as_str(data.get("format_id")),
         format_note=_as_str(data.get("format_note")),
         format_name=_as_str(data.get("format")),
@@ -320,12 +323,12 @@ def format_from_dict(data: dict[str, Any]) -> YtdlpFormat:
     )
 
 
-def parse_formats(formats: Any) -> list[YtdlpFormat]:
+def parse_formats(formats: Any) -> list[VideoFormat]:
     """ Parse a raw yt-dlp 'formats' style list into typed format objects.
         Args:
             formats: A list of dictionaries representing yt-dlp format entries.
         Returns:
-            A list of YtdlpFormat objects representing the format entries.
+            A list of VideoFormat objects representing the format entries.
     """
     if not isinstance(formats, list):
         return []
@@ -361,28 +364,28 @@ def pick_selected_format_dicts(info: dict[str, Any]) -> list[dict[str, Any]]:
     return []
 
 
-def pick_selected_formats(info: dict[str, Any]) -> list[YtdlpFormat]:
+def pick_selected_formats(info: dict[str, Any]) -> list[VideoFormat]:
     """ Typed wrapper around pick_selected_format_dicts().
         Args:
             info: The raw yt-dlp info dictionary for a video.
         Returns:
-            A list of YtdlpFormat objects representing the selected formats.
+            A list of VideoFormat objects representing the selected formats.
     """
     return [format_from_dict(item) for item in pick_selected_format_dicts(info)]
 
 
 def split_selected_streams(
-    selected: list[YtdlpFormat],
-) -> tuple[YtdlpFormat | None, YtdlpFormat | None, YtdlpFormat | None]:
+    selected: list[VideoFormat],
+) -> tuple[VideoFormat | None, VideoFormat | None, VideoFormat | None]:
     """ Split selected formats into video-only, audio-only, and muxed.
         Args:
-            selected: A list of YtdlpFormat objects representing the selected formats.
+            selected: A list of VideoFormat objects representing the selected formats.
         Returns:
             A tuple containing the video-only, audio-only, and muxed formats.
     """
-    video_only: YtdlpFormat | None = None
-    audio_only: YtdlpFormat | None = None
-    muxed: YtdlpFormat | None = None
+    video_only: VideoFormat | None = None
+    audio_only: VideoFormat | None = None
+    muxed: VideoFormat | None = None
 
     for fmt in selected:
         if fmt.is_video_only and video_only is None:
@@ -395,12 +398,12 @@ def split_selected_streams(
     return video_only, audio_only, muxed
 
 
-def pick_best_format(info: dict[str, Any]) -> YtdlpFormat | None:
+def pick_best_format(info: dict[str, Any]) -> VideoFormat | None:
     """ Heuristic: choose the 'best' format entry from the full formats list.
         Args:
             info: The raw yt-dlp info dictionary for a video.
         Returns:
-            The YtdlpFormat object representing the best format, or None if 
+            The VideoFormat object representing the best format, or None if 
             no formats are available.
 
         This is especially useful in info-only mode when there is no explicit
@@ -415,7 +418,7 @@ def pick_best_format(info: dict[str, Any]) -> YtdlpFormat | None:
     if not candidates:
         return None
 
-    def score(fmt: YtdlpFormat) -> tuple[int, float, int]:
+    def score(fmt: VideoFormat) -> tuple[int, float, int]:
         return (
             fmt.height or 0,
             fmt.fps or 0.0,
@@ -456,7 +459,7 @@ class SelectionSummary:
     overall_format: str | None
     overall_ext: str | None
 
-    selected_formats: list[YtdlpFormat]
+    selected_formats: list[VideoFormat]
 
     video: StreamEstimate | None
     audio: StreamEstimate | None
@@ -467,12 +470,12 @@ class SelectionSummary:
 
 
 def estimate_stream(
-    fmt: YtdlpFormat,
+    fmt: VideoFormat,
     duration_s: int | None,
 ) -> StreamEstimate:
     """ Estimate bitrate/size relationships for one selected stream.
         Args:
-            fmt: The YtdlpFormat object representing the selected format.
+            fmt: The VideoFormat object representing the selected format.
             duration_s: The duration of the stream in seconds.
         Returns:
             A StreamEstimate object containing the estimated bitrate/size relationships.
@@ -584,7 +587,7 @@ def summarize_selection(info: dict[str, Any]) -> SelectionSummary:
 # -----------------------------------------------------------------------------
 
 @dataclass(slots=True)
-class YtdlpInfo:
+class VideoInfo:
     """ Full typed view of the yt-dlp info dict.
 
         This is useful when you want:
@@ -614,8 +617,8 @@ class YtdlpInfo:
     format_name: str | None = None
     ext: str | None = None
 
-    requested_formats: list[YtdlpFormat] = field(default_factory=list)
-    formats: list[YtdlpFormat] = field(default_factory=list)
+    requested_formats: list[VideoFormat] = field(default_factory=list)
+    formats: list[VideoFormat] = field(default_factory=list)
 
     @classmethod
     def from_dict(
@@ -625,7 +628,7 @@ class YtdlpInfo:
         include_raw: bool = True,
         copy_raw: bool = False,
         include_formats: bool = True,
-    ) -> YtdlpInfo:
+    ) -> VideoInfo:
         """ Build a typed info object from raw yt-dlp info.
 
             Args:
@@ -640,7 +643,7 @@ class YtdlpInfo:
                     Whether to parse and retain the full format lists.
                     Turn off if you want a lighter object.
             Returns:
-                A YtdlpInfo object containing the typed info.
+                A VideoInfo object containing the typed info.
         """
         if not isinstance(info, dict):
             raise TypeError(f"info must be dict[str, Any], got {type(info).__name__}")
@@ -679,10 +682,10 @@ class YtdlpInfo:
         )
 
     @property
-    def best_format(self) -> YtdlpFormat | None:
+    def best_format(self) -> VideoFormat | None:
         """ Heuristic best format from the full 'formats' list.
             Returns:
-                The YtdlpFormat object representing the best format, or None if
+                The VideoFormat object representing the best format, or None if
                 no formats are available.
         """
         if self.formats:
@@ -712,7 +715,7 @@ class YtdlpInfo:
 # -----------------------------------------------------------------------------
 
 
-def fetch_ytdlp_info(
+def fetch_video_info(
     url: str,
     *,
     format_selector: str = "bestvideo+bestaudio/best",
@@ -720,8 +723,8 @@ def fetch_ytdlp_info(
     copy_raw: bool = False,
     include_formats: bool = True,
     extra_options: dict[str, Any] | None = None,
-) -> YtdlpInfo:
-    """ Fetch yt-dlp info and return a typed YtdlpInfo object.
+) -> VideoInfo:
+    """ Fetch yt-dlp info and return a typed VideoInfo object.
         Args:
             url: The URL to extract info from.
             format_selector: The format selector string.
@@ -730,14 +733,14 @@ def fetch_ytdlp_info(
             include_formats: Whether to include the parsed formats.
             extra_options: Additional options to pass to yt-dlp.
         Returns:
-            A YtdlpInfo object containing the typed info.
+            A VideoInfo object containing the typed info.
     """
     info = fetch_yt_dlp_info(
         url,
         format_selector=format_selector,
         extra_options=extra_options,
     )
-    return YtdlpInfo.from_dict(
+    return VideoInfo.from_dict(
         info,
         include_raw=include_raw,
         copy_raw=copy_raw,
@@ -786,37 +789,37 @@ def read_info(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
-def write_ytdlp_info(path: Path, info: YtdlpInfo) -> None:
-    """ Write a YtdlpInfo object to a JSON file.
+def write_video_info(path: Path, info: VideoInfo) -> None:
+    """ Write a VideoInfo object to a JSON file.
             Args:
                 path: The path to write the JSON file to.
-                info: The YtdlpInfo object to write.
+                info: The VideoInfo object to write.
     """
-    if not isinstance(info, YtdlpInfo):
-        raise TypeError(f"info must be YtdlpInfo, got {type(info).__name__}")
+    if not isinstance(info, VideoInfo):
+        raise TypeError(f"info must be VideoInfo, got {type(info).__name__}")
     raw:dict[str, any] = info.raw
     if raw is None:
-        raise ValueError("YtdlpInfo.raw must be present to write to file")
+        raise ValueError("VideoInfo.raw must be present to write to file")
 
     # Option 1: write the raw dict exactly as received/stored
     write_info(path, raw)
 
-def read_ytdlp_info(path: Path) -> YtdlpInfo | None:
-    """ Read a YtdlpInfo object from a JSON file.
+def read_video_info(path: Path) -> VideoInfo | None:
+    """ Read a VideoInfo object from a JSON file.
         Args: 
             path: The path to read the JSON file from.
         Returns:
-            A YtdlpInfo object if the file was read successfully, or None if there was an error.
+            A VideoInfo object if the file was read successfully, or None if there was an error.
     """
     try:
         info = read_info(path)
 
-        return YtdlpInfo.from_dict(
+        return VideoInfo.from_dict(
             info,
             include_raw=True,
             copy_raw=False,
             include_formats=True,
         )
     except Exception as err:  # pylint: disable=broad-exception-caught
-        logger.warning("Error reading YtdlpInfo from %s: %s", path, err)
+        logger.warning("Error reading VideoInfo from %s: %s", path, err)
         return None

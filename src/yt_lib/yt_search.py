@@ -21,7 +21,7 @@ from yt_lib.yt_ids import (
         is_playlist_id,
         extract_playlist_id
     )
-from yt_lib.utils.api_keys import ApiVault
+from yt_lib.utils.api_vault import ApiVault
 from yt_lib.utils.log_utils import get_logger, log_tree
 logger = get_logger(__name__)
 

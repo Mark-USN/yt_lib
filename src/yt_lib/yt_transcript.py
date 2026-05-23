@@ -42,7 +42,6 @@ from youtube_transcript_api import (
     YouTubeTranscriptApi,
 )
 from yt_lib.utils.log_utils import get_logger
-# from yt_lib.utils.app_context import RuntimeContext
 from yt_lib.yt_ids import extract_video_id
 
 logger = get_logger(__name__)

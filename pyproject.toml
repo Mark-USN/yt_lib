@@ -4,20 +4,24 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yt-lib"
-version = "0.3.13"
+version = "0.3.15"
 description = "Library files for Utilities and Youtube: transcripts, search, and information."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
   "youtube-transcript-api>=1.2.4",
-  "yt-dlp>=2026.2.4",
+  "yt-dlp[default]>=2026.2.4",
   "openai-whisper",
   "pydantic>=2.12.5",
   "google-api-python-client>=2.190.0",
   "pdoc>=16.0.0",
   "python-dotenv>=1.2.2",
   "babel>=2.18.0",
+  "platformdirs>=4.9.6",
 ]
+
+[tool.pdoc]
+docformat = "google"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/yt_lib"]

@@ -137,7 +137,7 @@ def extract_any_identifier(text: str) -> YoutubeIdentifier | None:
     return YoutubeIdentifier(kind, text)
 
 @dataclass(slots=True)
-class YtdlpMetadata:
+class VideoMetadata:
     """ Metadata extracted from yt-dlp info dict for a YouTube video."""
     url: str
     video_id: str
@@ -177,15 +177,15 @@ class YtdlpMetadata:
         }
 
     @classmethod
-    def from_yt_dlp(cls, *, url: str, info: dict[str, object]) -> YtdlpMetadata:
-        """ Create a YtdlpMetadata instance from a yt-dlp info dict for a video.
+    def from_yt_dlp(cls, *, url: str, info: dict[str, object]) -> VideoMetadata:
+        """ Create a VideoMetadata instance from a yt-dlp info dict for a video.
             Args:
                 url: The original URL of the video.
                 info: The yt-dlp info dictionary for the video.
             Returns:
-                A YtdlpMetadata instance populated with the extracted metadata.
+                A VideoMetadata instance populated with the extracted metadata.
         """
-        format_data = YtdlpMetadata.extract_video_metadata(info)
+        format_data = VideoMetadata.extract_video_metadata(info)
         return cls(
             url=url,
             video_id=info["id"],

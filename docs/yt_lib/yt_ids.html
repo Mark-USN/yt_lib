@@ -82,61 +82,61 @@
                     <a class="function" href="#extract_any_identifier">extract_any_identifier</a>
             </li>
             <li>
-                    <a class="class" href="#YtdlpMetadata">YtdlpMetadata</a>
+                    <a class="class" href="#VideoMetadata">VideoMetadata</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="function" href="#YtdlpMetadata.__init__">YtdlpMetadata</a>
+                                <a class="function" href="#VideoMetadata.__init__">VideoMetadata</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.url">url</a>
+                                <a class="variable" href="#VideoMetadata.url">url</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.video_id">video_id</a>
+                                <a class="variable" href="#VideoMetadata.video_id">video_id</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.title">title</a>
+                                <a class="variable" href="#VideoMetadata.title">title</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.description">description</a>
+                                <a class="variable" href="#VideoMetadata.description">description</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.channel">channel</a>
+                                <a class="variable" href="#VideoMetadata.channel">channel</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.upload_date">upload_date</a>
+                                <a class="variable" href="#VideoMetadata.upload_date">upload_date</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.duration">duration</a>
+                                <a class="variable" href="#VideoMetadata.duration">duration</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.view_count">view_count</a>
+                                <a class="variable" href="#VideoMetadata.view_count">view_count</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.like_count">like_count</a>
+                                <a class="variable" href="#VideoMetadata.like_count">like_count</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.webpage_url">webpage_url</a>
+                                <a class="variable" href="#VideoMetadata.webpage_url">webpage_url</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.ext">ext</a>
+                                <a class="variable" href="#VideoMetadata.ext">ext</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.video_format">video_format</a>
+                                <a class="variable" href="#VideoMetadata.video_format">video_format</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.filesize">filesize</a>
+                                <a class="variable" href="#VideoMetadata.filesize">filesize</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.fps">fps</a>
+                                <a class="variable" href="#VideoMetadata.fps">fps</a>
                         </li>
                         <li>
-                                <a class="variable" href="#YtdlpMetadata.resolution">resolution</a>
+                                <a class="variable" href="#VideoMetadata.resolution">resolution</a>
                         </li>
                         <li>
-                                <a class="function" href="#YtdlpMetadata.extract_video_metadata">extract_video_metadata</a>
+                                <a class="function" href="#VideoMetadata.extract_video_metadata">extract_video_metadata</a>
                         </li>
                         <li>
-                                <a class="function" href="#YtdlpMetadata.from_yt_dlp">from_yt_dlp</a>
+                                <a class="function" href="#VideoMetadata.from_yt_dlp">from_yt_dlp</a>
                         </li>
                 </ul>
 
@@ -303,7 +303,7 @@
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="k">return</span> <span class="n">YoutubeIdentifier</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
 </span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="k">class</span><span class="w"> </span><span class="nc">YtdlpMetadata</span><span class="p">:</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="k">class</span><span class="w"> </span><span class="nc">VideoMetadata</span><span class="p">:</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Metadata extracted from yt-dlp info dict for a YouTube video.&quot;&quot;&quot;</span>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
 </span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span>
@@ -343,15 +343,15 @@
 </span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>        <span class="p">}</span>
 </span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>
 </span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>    <span class="nd">@classmethod</span>
-</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_yt_dlp</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">YtdlpMetadata</span><span class="p">:</span>
-</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a YtdlpMetadata instance from a yt-dlp info dict for a video.</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_yt_dlp</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">VideoMetadata</span><span class="p">:</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a VideoMetadata instance from a yt-dlp info dict for a video.</span>
 </span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="sd">            Args:</span>
 </span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a><span class="sd">                url: The original URL of the video.</span>
 </span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="sd">                info: The yt-dlp info dictionary for the video.</span>
 </span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a><span class="sd">            Returns:</span>
-</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="sd">                A YtdlpMetadata instance populated with the extracted metadata.</span>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="sd">                A VideoMetadata instance populated with the extracted metadata.</span>
 </span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>        <span class="n">format_data</span> <span class="o">=</span> <span class="n">YtdlpMetadata</span><span class="o">.</span><span class="n">extract_video_metadata</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>        <span class="n">format_data</span> <span class="o">=</span> <span class="n">VideoMetadata</span><span class="o">.</span><span class="n">extract_video_metadata</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
 </span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
 </span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>            <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>            <span class="n">video_id</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
@@ -739,85 +739,85 @@ Returns:
 
 
                 </section>
-                <section id="YtdlpMetadata">
-                            <input id="YtdlpMetadata-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                <section id="VideoMetadata">
+                            <input id="VideoMetadata-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr class">
                     <div class="decorator decorator-dataclass">@dataclass(slots=True)</div>
 
     <span class="def">class</span>
-    <span class="name">YtdlpMetadata</span>:
+    <span class="name">VideoMetadata</span>:
 
-                <label class="view-source-button" for="YtdlpMetadata-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="VideoMetadata-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#YtdlpMetadata"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="YtdlpMetadata-140"><a href="#YtdlpMetadata-140"><span class="linenos">140</span></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="YtdlpMetadata-141"><a href="#YtdlpMetadata-141"><span class="linenos">141</span></a><span class="k">class</span><span class="w"> </span><span class="nc">YtdlpMetadata</span><span class="p">:</span>
-</span><span id="YtdlpMetadata-142"><a href="#YtdlpMetadata-142"><span class="linenos">142</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Metadata extracted from yt-dlp info dict for a YouTube video.&quot;&quot;&quot;</span>
-</span><span id="YtdlpMetadata-143"><a href="#YtdlpMetadata-143"><span class="linenos">143</span></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="YtdlpMetadata-144"><a href="#YtdlpMetadata-144"><span class="linenos">144</span></a>    <span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="YtdlpMetadata-145"><a href="#YtdlpMetadata-145"><span class="linenos">145</span></a>    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="YtdlpMetadata-146"><a href="#YtdlpMetadata-146"><span class="linenos">146</span></a>    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="YtdlpMetadata-147"><a href="#YtdlpMetadata-147"><span class="linenos">147</span></a>    <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-148"><a href="#YtdlpMetadata-148"><span class="linenos">148</span></a>    <span class="n">upload_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-149"><a href="#YtdlpMetadata-149"><span class="linenos">149</span></a>    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-150"><a href="#YtdlpMetadata-150"><span class="linenos">150</span></a>    <span class="n">view_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-151"><a href="#YtdlpMetadata-151"><span class="linenos">151</span></a>    <span class="n">like_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-152"><a href="#YtdlpMetadata-152"><span class="linenos">152</span></a>    <span class="n">webpage_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-153"><a href="#YtdlpMetadata-153"><span class="linenos">153</span></a>    <span class="n">ext</span><span class="p">:</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-154"><a href="#YtdlpMetadata-154"><span class="linenos">154</span></a>    <span class="n">video_format</span><span class="p">:</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-155"><a href="#YtdlpMetadata-155"><span class="linenos">155</span></a>    <span class="n">filesize</span><span class="p">:</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-156"><a href="#YtdlpMetadata-156"><span class="linenos">156</span></a>    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-157"><a href="#YtdlpMetadata-157"><span class="linenos">157</span></a>    <span class="n">resolution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="YtdlpMetadata-158"><a href="#YtdlpMetadata-158"><span class="linenos">158</span></a>
-</span><span id="YtdlpMetadata-159"><a href="#YtdlpMetadata-159"><span class="linenos">159</span></a>
-</span><span id="YtdlpMetadata-160"><a href="#YtdlpMetadata-160"><span class="linenos">160</span></a>    <span class="nd">@classmethod</span>
-</span><span id="YtdlpMetadata-161"><a href="#YtdlpMetadata-161"><span class="linenos">161</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_video_metadata</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-</span><span id="YtdlpMetadata-162"><a href="#YtdlpMetadata-162"><span class="linenos">162</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Extract relevant video metadata from a yt-dlp info dict, handling both</span>
-</span><span id="YtdlpMetadata-163"><a href="#YtdlpMetadata-163"><span class="linenos">163</span></a><span class="sd">            &#39;requested_formats&#39; and top-level format fields.</span>
-</span><span id="YtdlpMetadata-164"><a href="#YtdlpMetadata-164"><span class="linenos">164</span></a><span class="sd">            Args:</span>
-</span><span id="YtdlpMetadata-165"><a href="#YtdlpMetadata-165"><span class="linenos">165</span></a><span class="sd">                info: The yt-dlp info dictionary for a video.</span>
-</span><span id="YtdlpMetadata-166"><a href="#YtdlpMetadata-166"><span class="linenos">166</span></a><span class="sd">            Returns:</span>
-</span><span id="YtdlpMetadata-167"><a href="#YtdlpMetadata-167"><span class="linenos">167</span></a><span class="sd">                A dictionary containing extracted metadata fields.</span>
-</span><span id="YtdlpMetadata-168"><a href="#YtdlpMetadata-168"><span class="linenos">168</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="YtdlpMetadata-169"><a href="#YtdlpMetadata-169"><span class="linenos">169</span></a>        <span class="n">fmt</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;requested_formats&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;requested_formats&quot;</span> <span class="ow">in</span> <span class="n">info</span> <span class="k">else</span> <span class="n">info</span>
-</span><span id="YtdlpMetadata-170"><a href="#YtdlpMetadata-170"><span class="linenos">170</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="YtdlpMetadata-171"><a href="#YtdlpMetadata-171"><span class="linenos">171</span></a>            <span class="s2">&quot;ext&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ext&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-172"><a href="#YtdlpMetadata-172"><span class="linenos">172</span></a>            <span class="s2">&quot;video_format&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;format&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-173"><a href="#YtdlpMetadata-173"><span class="linenos">173</span></a>            <span class="s2">&quot;filesize&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filesize&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filesize_approx&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-174"><a href="#YtdlpMetadata-174"><span class="linenos">174</span></a>            <span class="s2">&quot;fps&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fps&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-175"><a href="#YtdlpMetadata-175"><span class="linenos">175</span></a>            <span class="s2">&quot;resolution&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;resolution&quot;</span><span class="p">)</span>
-</span><span id="YtdlpMetadata-176"><a href="#YtdlpMetadata-176"><span class="linenos">176</span></a>                <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="YtdlpMetadata-177"><a href="#YtdlpMetadata-177"><span class="linenos">177</span></a>            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-178"><a href="#YtdlpMetadata-178"><span class="linenos">178</span></a>        <span class="p">}</span>
-</span><span id="YtdlpMetadata-179"><a href="#YtdlpMetadata-179"><span class="linenos">179</span></a>
-</span><span id="YtdlpMetadata-180"><a href="#YtdlpMetadata-180"><span class="linenos">180</span></a>    <span class="nd">@classmethod</span>
-</span><span id="YtdlpMetadata-181"><a href="#YtdlpMetadata-181"><span class="linenos">181</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_yt_dlp</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">YtdlpMetadata</span><span class="p">:</span>
-</span><span id="YtdlpMetadata-182"><a href="#YtdlpMetadata-182"><span class="linenos">182</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a YtdlpMetadata instance from a yt-dlp info dict for a video.</span>
-</span><span id="YtdlpMetadata-183"><a href="#YtdlpMetadata-183"><span class="linenos">183</span></a><span class="sd">            Args:</span>
-</span><span id="YtdlpMetadata-184"><a href="#YtdlpMetadata-184"><span class="linenos">184</span></a><span class="sd">                url: The original URL of the video.</span>
-</span><span id="YtdlpMetadata-185"><a href="#YtdlpMetadata-185"><span class="linenos">185</span></a><span class="sd">                info: The yt-dlp info dictionary for the video.</span>
-</span><span id="YtdlpMetadata-186"><a href="#YtdlpMetadata-186"><span class="linenos">186</span></a><span class="sd">            Returns:</span>
-</span><span id="YtdlpMetadata-187"><a href="#YtdlpMetadata-187"><span class="linenos">187</span></a><span class="sd">                A YtdlpMetadata instance populated with the extracted metadata.</span>
-</span><span id="YtdlpMetadata-188"><a href="#YtdlpMetadata-188"><span class="linenos">188</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="YtdlpMetadata-189"><a href="#YtdlpMetadata-189"><span class="linenos">189</span></a>        <span class="n">format_data</span> <span class="o">=</span> <span class="n">YtdlpMetadata</span><span class="o">.</span><span class="n">extract_video_metadata</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
-</span><span id="YtdlpMetadata-190"><a href="#YtdlpMetadata-190"><span class="linenos">190</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-</span><span id="YtdlpMetadata-191"><a href="#YtdlpMetadata-191"><span class="linenos">191</span></a>            <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
-</span><span id="YtdlpMetadata-192"><a href="#YtdlpMetadata-192"><span class="linenos">192</span></a>            <span class="n">video_id</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata-193"><a href="#YtdlpMetadata-193"><span class="linenos">193</span></a>            <span class="n">title</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata-194"><a href="#YtdlpMetadata-194"><span class="linenos">194</span></a>            <span class="n">description</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-195"><a href="#YtdlpMetadata-195"><span class="linenos">195</span></a>            <span class="n">channel</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;channel&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-196"><a href="#YtdlpMetadata-196"><span class="linenos">196</span></a>            <span class="n">upload_date</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;upload_date&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-197"><a href="#YtdlpMetadata-197"><span class="linenos">197</span></a>            <span class="n">duration</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-198"><a href="#YtdlpMetadata-198"><span class="linenos">198</span></a>            <span class="n">webpage_url</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;webpage_url&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-199"><a href="#YtdlpMetadata-199"><span class="linenos">199</span></a>            <span class="n">view_count</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;view_count&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-200"><a href="#YtdlpMetadata-200"><span class="linenos">200</span></a>            <span class="n">like_count</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;like_count&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata-201"><a href="#YtdlpMetadata-201"><span class="linenos">201</span></a>            <span class="n">ext</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;ext&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata-202"><a href="#YtdlpMetadata-202"><span class="linenos">202</span></a>            <span class="n">video_format</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;video_format&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata-203"><a href="#YtdlpMetadata-203"><span class="linenos">203</span></a>            <span class="n">filesize</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;filesize&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata-204"><a href="#YtdlpMetadata-204"><span class="linenos">204</span></a>            <span class="n">fps</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;fps&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata-205"><a href="#YtdlpMetadata-205"><span class="linenos">205</span></a>            <span class="n">resolution</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata-206"><a href="#YtdlpMetadata-206"><span class="linenos">206</span></a>        <span class="p">)</span>
+    <a class="headerlink" href="#VideoMetadata"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="VideoMetadata-140"><a href="#VideoMetadata-140"><span class="linenos">140</span></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="VideoMetadata-141"><a href="#VideoMetadata-141"><span class="linenos">141</span></a><span class="k">class</span><span class="w"> </span><span class="nc">VideoMetadata</span><span class="p">:</span>
+</span><span id="VideoMetadata-142"><a href="#VideoMetadata-142"><span class="linenos">142</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Metadata extracted from yt-dlp info dict for a YouTube video.&quot;&quot;&quot;</span>
+</span><span id="VideoMetadata-143"><a href="#VideoMetadata-143"><span class="linenos">143</span></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="VideoMetadata-144"><a href="#VideoMetadata-144"><span class="linenos">144</span></a>    <span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="VideoMetadata-145"><a href="#VideoMetadata-145"><span class="linenos">145</span></a>    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="VideoMetadata-146"><a href="#VideoMetadata-146"><span class="linenos">146</span></a>    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="VideoMetadata-147"><a href="#VideoMetadata-147"><span class="linenos">147</span></a>    <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-148"><a href="#VideoMetadata-148"><span class="linenos">148</span></a>    <span class="n">upload_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-149"><a href="#VideoMetadata-149"><span class="linenos">149</span></a>    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-150"><a href="#VideoMetadata-150"><span class="linenos">150</span></a>    <span class="n">view_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-151"><a href="#VideoMetadata-151"><span class="linenos">151</span></a>    <span class="n">like_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-152"><a href="#VideoMetadata-152"><span class="linenos">152</span></a>    <span class="n">webpage_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-153"><a href="#VideoMetadata-153"><span class="linenos">153</span></a>    <span class="n">ext</span><span class="p">:</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-154"><a href="#VideoMetadata-154"><span class="linenos">154</span></a>    <span class="n">video_format</span><span class="p">:</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-155"><a href="#VideoMetadata-155"><span class="linenos">155</span></a>    <span class="n">filesize</span><span class="p">:</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-156"><a href="#VideoMetadata-156"><span class="linenos">156</span></a>    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-157"><a href="#VideoMetadata-157"><span class="linenos">157</span></a>    <span class="n">resolution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="VideoMetadata-158"><a href="#VideoMetadata-158"><span class="linenos">158</span></a>
+</span><span id="VideoMetadata-159"><a href="#VideoMetadata-159"><span class="linenos">159</span></a>
+</span><span id="VideoMetadata-160"><a href="#VideoMetadata-160"><span class="linenos">160</span></a>    <span class="nd">@classmethod</span>
+</span><span id="VideoMetadata-161"><a href="#VideoMetadata-161"><span class="linenos">161</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_video_metadata</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+</span><span id="VideoMetadata-162"><a href="#VideoMetadata-162"><span class="linenos">162</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Extract relevant video metadata from a yt-dlp info dict, handling both</span>
+</span><span id="VideoMetadata-163"><a href="#VideoMetadata-163"><span class="linenos">163</span></a><span class="sd">            &#39;requested_formats&#39; and top-level format fields.</span>
+</span><span id="VideoMetadata-164"><a href="#VideoMetadata-164"><span class="linenos">164</span></a><span class="sd">            Args:</span>
+</span><span id="VideoMetadata-165"><a href="#VideoMetadata-165"><span class="linenos">165</span></a><span class="sd">                info: The yt-dlp info dictionary for a video.</span>
+</span><span id="VideoMetadata-166"><a href="#VideoMetadata-166"><span class="linenos">166</span></a><span class="sd">            Returns:</span>
+</span><span id="VideoMetadata-167"><a href="#VideoMetadata-167"><span class="linenos">167</span></a><span class="sd">                A dictionary containing extracted metadata fields.</span>
+</span><span id="VideoMetadata-168"><a href="#VideoMetadata-168"><span class="linenos">168</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="VideoMetadata-169"><a href="#VideoMetadata-169"><span class="linenos">169</span></a>        <span class="n">fmt</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;requested_formats&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;requested_formats&quot;</span> <span class="ow">in</span> <span class="n">info</span> <span class="k">else</span> <span class="n">info</span>
+</span><span id="VideoMetadata-170"><a href="#VideoMetadata-170"><span class="linenos">170</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="VideoMetadata-171"><a href="#VideoMetadata-171"><span class="linenos">171</span></a>            <span class="s2">&quot;ext&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ext&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-172"><a href="#VideoMetadata-172"><span class="linenos">172</span></a>            <span class="s2">&quot;video_format&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;format&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-173"><a href="#VideoMetadata-173"><span class="linenos">173</span></a>            <span class="s2">&quot;filesize&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filesize&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filesize_approx&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-174"><a href="#VideoMetadata-174"><span class="linenos">174</span></a>            <span class="s2">&quot;fps&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fps&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-175"><a href="#VideoMetadata-175"><span class="linenos">175</span></a>            <span class="s2">&quot;resolution&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;resolution&quot;</span><span class="p">)</span>
+</span><span id="VideoMetadata-176"><a href="#VideoMetadata-176"><span class="linenos">176</span></a>                <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="VideoMetadata-177"><a href="#VideoMetadata-177"><span class="linenos">177</span></a>            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-178"><a href="#VideoMetadata-178"><span class="linenos">178</span></a>        <span class="p">}</span>
+</span><span id="VideoMetadata-179"><a href="#VideoMetadata-179"><span class="linenos">179</span></a>
+</span><span id="VideoMetadata-180"><a href="#VideoMetadata-180"><span class="linenos">180</span></a>    <span class="nd">@classmethod</span>
+</span><span id="VideoMetadata-181"><a href="#VideoMetadata-181"><span class="linenos">181</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_yt_dlp</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">VideoMetadata</span><span class="p">:</span>
+</span><span id="VideoMetadata-182"><a href="#VideoMetadata-182"><span class="linenos">182</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a VideoMetadata instance from a yt-dlp info dict for a video.</span>
+</span><span id="VideoMetadata-183"><a href="#VideoMetadata-183"><span class="linenos">183</span></a><span class="sd">            Args:</span>
+</span><span id="VideoMetadata-184"><a href="#VideoMetadata-184"><span class="linenos">184</span></a><span class="sd">                url: The original URL of the video.</span>
+</span><span id="VideoMetadata-185"><a href="#VideoMetadata-185"><span class="linenos">185</span></a><span class="sd">                info: The yt-dlp info dictionary for the video.</span>
+</span><span id="VideoMetadata-186"><a href="#VideoMetadata-186"><span class="linenos">186</span></a><span class="sd">            Returns:</span>
+</span><span id="VideoMetadata-187"><a href="#VideoMetadata-187"><span class="linenos">187</span></a><span class="sd">                A VideoMetadata instance populated with the extracted metadata.</span>
+</span><span id="VideoMetadata-188"><a href="#VideoMetadata-188"><span class="linenos">188</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="VideoMetadata-189"><a href="#VideoMetadata-189"><span class="linenos">189</span></a>        <span class="n">format_data</span> <span class="o">=</span> <span class="n">VideoMetadata</span><span class="o">.</span><span class="n">extract_video_metadata</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+</span><span id="VideoMetadata-190"><a href="#VideoMetadata-190"><span class="linenos">190</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+</span><span id="VideoMetadata-191"><a href="#VideoMetadata-191"><span class="linenos">191</span></a>            <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+</span><span id="VideoMetadata-192"><a href="#VideoMetadata-192"><span class="linenos">192</span></a>            <span class="n">video_id</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata-193"><a href="#VideoMetadata-193"><span class="linenos">193</span></a>            <span class="n">title</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata-194"><a href="#VideoMetadata-194"><span class="linenos">194</span></a>            <span class="n">description</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-195"><a href="#VideoMetadata-195"><span class="linenos">195</span></a>            <span class="n">channel</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;channel&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-196"><a href="#VideoMetadata-196"><span class="linenos">196</span></a>            <span class="n">upload_date</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;upload_date&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-197"><a href="#VideoMetadata-197"><span class="linenos">197</span></a>            <span class="n">duration</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-198"><a href="#VideoMetadata-198"><span class="linenos">198</span></a>            <span class="n">webpage_url</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;webpage_url&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-199"><a href="#VideoMetadata-199"><span class="linenos">199</span></a>            <span class="n">view_count</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;view_count&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-200"><a href="#VideoMetadata-200"><span class="linenos">200</span></a>            <span class="n">like_count</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;like_count&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata-201"><a href="#VideoMetadata-201"><span class="linenos">201</span></a>            <span class="n">ext</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;ext&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata-202"><a href="#VideoMetadata-202"><span class="linenos">202</span></a>            <span class="n">video_format</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;video_format&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata-203"><a href="#VideoMetadata-203"><span class="linenos">203</span></a>            <span class="n">filesize</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;filesize&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata-204"><a href="#VideoMetadata-204"><span class="linenos">204</span></a>            <span class="n">fps</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;fps&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata-205"><a href="#VideoMetadata-205"><span class="linenos">205</span></a>            <span class="n">resolution</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata-206"><a href="#VideoMetadata-206"><span class="linenos">206</span></a>        <span class="p">)</span>
 </span></pre></div>
 
 
@@ -825,214 +825,214 @@ Returns:
 </div>
 
 
-                            <div id="YtdlpMetadata.__init__" class="classattr">
+                            <div id="VideoMetadata.__init__" class="classattr">
                                 <div class="attr function">
             
-        <span class="name">YtdlpMetadata</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">url</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">title</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">description</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">upload_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">view_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">like_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">webpage_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">ext</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">video_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">filesize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">resolution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span>)</span>
+        <span class="name">VideoMetadata</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">url</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">title</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">description</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">upload_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">view_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">like_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">webpage_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">ext</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">video_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">filesize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">resolution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span>)</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.__init__"></a>
+    <a class="headerlink" href="#VideoMetadata.__init__"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.url" class="classattr">
+                            <div id="VideoMetadata.url" class="classattr">
                                 <div class="attr variable">
             <span class="name">url</span><span class="annotation">: str</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.url"></a>
+    <a class="headerlink" href="#VideoMetadata.url"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.video_id" class="classattr">
+                            <div id="VideoMetadata.video_id" class="classattr">
                                 <div class="attr variable">
             <span class="name">video_id</span><span class="annotation">: str</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.video_id"></a>
+    <a class="headerlink" href="#VideoMetadata.video_id"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.title" class="classattr">
+                            <div id="VideoMetadata.title" class="classattr">
                                 <div class="attr variable">
             <span class="name">title</span><span class="annotation">: str</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.title"></a>
+    <a class="headerlink" href="#VideoMetadata.title"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.description" class="classattr">
+                            <div id="VideoMetadata.description" class="classattr">
                                 <div class="attr variable">
             <span class="name">description</span><span class="annotation">: str</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.description"></a>
+    <a class="headerlink" href="#VideoMetadata.description"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.channel" class="classattr">
+                            <div id="VideoMetadata.channel" class="classattr">
                                 <div class="attr variable">
             <span class="name">channel</span><span class="annotation">: str | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.channel"></a>
+    <a class="headerlink" href="#VideoMetadata.channel"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.upload_date" class="classattr">
+                            <div id="VideoMetadata.upload_date" class="classattr">
                                 <div class="attr variable">
             <span class="name">upload_date</span><span class="annotation">: str | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.upload_date"></a>
+    <a class="headerlink" href="#VideoMetadata.upload_date"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.duration" class="classattr">
+                            <div id="VideoMetadata.duration" class="classattr">
                                 <div class="attr variable">
             <span class="name">duration</span><span class="annotation">: float | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.duration"></a>
+    <a class="headerlink" href="#VideoMetadata.duration"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.view_count" class="classattr">
+                            <div id="VideoMetadata.view_count" class="classattr">
                                 <div class="attr variable">
             <span class="name">view_count</span><span class="annotation">: int | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.view_count"></a>
+    <a class="headerlink" href="#VideoMetadata.view_count"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.like_count" class="classattr">
+                            <div id="VideoMetadata.like_count" class="classattr">
                                 <div class="attr variable">
             <span class="name">like_count</span><span class="annotation">: int | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.like_count"></a>
+    <a class="headerlink" href="#VideoMetadata.like_count"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.webpage_url" class="classattr">
+                            <div id="VideoMetadata.webpage_url" class="classattr">
                                 <div class="attr variable">
             <span class="name">webpage_url</span><span class="annotation">: str | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.webpage_url"></a>
+    <a class="headerlink" href="#VideoMetadata.webpage_url"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.ext" class="classattr">
+                            <div id="VideoMetadata.ext" class="classattr">
                                 <div class="attr variable">
             <span class="name">ext</span><span class="annotation">: str | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.ext"></a>
+    <a class="headerlink" href="#VideoMetadata.ext"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.video_format" class="classattr">
+                            <div id="VideoMetadata.video_format" class="classattr">
                                 <div class="attr variable">
             <span class="name">video_format</span><span class="annotation">: str | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.video_format"></a>
+    <a class="headerlink" href="#VideoMetadata.video_format"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.filesize" class="classattr">
+                            <div id="VideoMetadata.filesize" class="classattr">
                                 <div class="attr variable">
             <span class="name">filesize</span><span class="annotation">: int | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.filesize"></a>
+    <a class="headerlink" href="#VideoMetadata.filesize"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.fps" class="classattr">
+                            <div id="VideoMetadata.fps" class="classattr">
                                 <div class="attr variable">
             <span class="name">fps</span><span class="annotation">: float | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.fps"></a>
+    <a class="headerlink" href="#VideoMetadata.fps"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.resolution" class="classattr">
+                            <div id="VideoMetadata.resolution" class="classattr">
                                 <div class="attr variable">
             <span class="name">resolution</span><span class="annotation">: str | None</span>
 
         
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.resolution"></a>
+    <a class="headerlink" href="#VideoMetadata.resolution"></a>
     
     
 
                             </div>
-                            <div id="YtdlpMetadata.extract_video_metadata" class="classattr">
-                                        <input id="YtdlpMetadata.extract_video_metadata-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                            <div id="VideoMetadata.extract_video_metadata" class="classattr">
+                                        <input id="VideoMetadata.extract_video_metadata-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
         <span class="name">extract_video_metadata</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span></span><span class="return-annotation">) -> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]</span>:</span></span>
 
-                <label class="view-source-button" for="YtdlpMetadata.extract_video_metadata-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="VideoMetadata.extract_video_metadata-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.extract_video_metadata"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="YtdlpMetadata.extract_video_metadata-160"><a href="#YtdlpMetadata.extract_video_metadata-160"><span class="linenos">160</span></a>    <span class="nd">@classmethod</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-161"><a href="#YtdlpMetadata.extract_video_metadata-161"><span class="linenos">161</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_video_metadata</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-162"><a href="#YtdlpMetadata.extract_video_metadata-162"><span class="linenos">162</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Extract relevant video metadata from a yt-dlp info dict, handling both</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-163"><a href="#YtdlpMetadata.extract_video_metadata-163"><span class="linenos">163</span></a><span class="sd">            &#39;requested_formats&#39; and top-level format fields.</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-164"><a href="#YtdlpMetadata.extract_video_metadata-164"><span class="linenos">164</span></a><span class="sd">            Args:</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-165"><a href="#YtdlpMetadata.extract_video_metadata-165"><span class="linenos">165</span></a><span class="sd">                info: The yt-dlp info dictionary for a video.</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-166"><a href="#YtdlpMetadata.extract_video_metadata-166"><span class="linenos">166</span></a><span class="sd">            Returns:</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-167"><a href="#YtdlpMetadata.extract_video_metadata-167"><span class="linenos">167</span></a><span class="sd">                A dictionary containing extracted metadata fields.</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-168"><a href="#YtdlpMetadata.extract_video_metadata-168"><span class="linenos">168</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-169"><a href="#YtdlpMetadata.extract_video_metadata-169"><span class="linenos">169</span></a>        <span class="n">fmt</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;requested_formats&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;requested_formats&quot;</span> <span class="ow">in</span> <span class="n">info</span> <span class="k">else</span> <span class="n">info</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-170"><a href="#YtdlpMetadata.extract_video_metadata-170"><span class="linenos">170</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-171"><a href="#YtdlpMetadata.extract_video_metadata-171"><span class="linenos">171</span></a>            <span class="s2">&quot;ext&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ext&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-172"><a href="#YtdlpMetadata.extract_video_metadata-172"><span class="linenos">172</span></a>            <span class="s2">&quot;video_format&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;format&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-173"><a href="#YtdlpMetadata.extract_video_metadata-173"><span class="linenos">173</span></a>            <span class="s2">&quot;filesize&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filesize&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filesize_approx&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-174"><a href="#YtdlpMetadata.extract_video_metadata-174"><span class="linenos">174</span></a>            <span class="s2">&quot;fps&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fps&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-175"><a href="#YtdlpMetadata.extract_video_metadata-175"><span class="linenos">175</span></a>            <span class="s2">&quot;resolution&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;resolution&quot;</span><span class="p">)</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-176"><a href="#YtdlpMetadata.extract_video_metadata-176"><span class="linenos">176</span></a>                <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-177"><a href="#YtdlpMetadata.extract_video_metadata-177"><span class="linenos">177</span></a>            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.extract_video_metadata-178"><a href="#YtdlpMetadata.extract_video_metadata-178"><span class="linenos">178</span></a>        <span class="p">}</span>
+    <a class="headerlink" href="#VideoMetadata.extract_video_metadata"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="VideoMetadata.extract_video_metadata-160"><a href="#VideoMetadata.extract_video_metadata-160"><span class="linenos">160</span></a>    <span class="nd">@classmethod</span>
+</span><span id="VideoMetadata.extract_video_metadata-161"><a href="#VideoMetadata.extract_video_metadata-161"><span class="linenos">161</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_video_metadata</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+</span><span id="VideoMetadata.extract_video_metadata-162"><a href="#VideoMetadata.extract_video_metadata-162"><span class="linenos">162</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Extract relevant video metadata from a yt-dlp info dict, handling both</span>
+</span><span id="VideoMetadata.extract_video_metadata-163"><a href="#VideoMetadata.extract_video_metadata-163"><span class="linenos">163</span></a><span class="sd">            &#39;requested_formats&#39; and top-level format fields.</span>
+</span><span id="VideoMetadata.extract_video_metadata-164"><a href="#VideoMetadata.extract_video_metadata-164"><span class="linenos">164</span></a><span class="sd">            Args:</span>
+</span><span id="VideoMetadata.extract_video_metadata-165"><a href="#VideoMetadata.extract_video_metadata-165"><span class="linenos">165</span></a><span class="sd">                info: The yt-dlp info dictionary for a video.</span>
+</span><span id="VideoMetadata.extract_video_metadata-166"><a href="#VideoMetadata.extract_video_metadata-166"><span class="linenos">166</span></a><span class="sd">            Returns:</span>
+</span><span id="VideoMetadata.extract_video_metadata-167"><a href="#VideoMetadata.extract_video_metadata-167"><span class="linenos">167</span></a><span class="sd">                A dictionary containing extracted metadata fields.</span>
+</span><span id="VideoMetadata.extract_video_metadata-168"><a href="#VideoMetadata.extract_video_metadata-168"><span class="linenos">168</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="VideoMetadata.extract_video_metadata-169"><a href="#VideoMetadata.extract_video_metadata-169"><span class="linenos">169</span></a>        <span class="n">fmt</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;requested_formats&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;requested_formats&quot;</span> <span class="ow">in</span> <span class="n">info</span> <span class="k">else</span> <span class="n">info</span>
+</span><span id="VideoMetadata.extract_video_metadata-170"><a href="#VideoMetadata.extract_video_metadata-170"><span class="linenos">170</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="VideoMetadata.extract_video_metadata-171"><a href="#VideoMetadata.extract_video_metadata-171"><span class="linenos">171</span></a>            <span class="s2">&quot;ext&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ext&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.extract_video_metadata-172"><a href="#VideoMetadata.extract_video_metadata-172"><span class="linenos">172</span></a>            <span class="s2">&quot;video_format&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;format&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.extract_video_metadata-173"><a href="#VideoMetadata.extract_video_metadata-173"><span class="linenos">173</span></a>            <span class="s2">&quot;filesize&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filesize&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filesize_approx&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.extract_video_metadata-174"><a href="#VideoMetadata.extract_video_metadata-174"><span class="linenos">174</span></a>            <span class="s2">&quot;fps&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fps&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.extract_video_metadata-175"><a href="#VideoMetadata.extract_video_metadata-175"><span class="linenos">175</span></a>            <span class="s2">&quot;resolution&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;resolution&quot;</span><span class="p">)</span>
+</span><span id="VideoMetadata.extract_video_metadata-176"><a href="#VideoMetadata.extract_video_metadata-176"><span class="linenos">176</span></a>                <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="VideoMetadata.extract_video_metadata-177"><a href="#VideoMetadata.extract_video_metadata-177"><span class="linenos">177</span></a>            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">fmt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.extract_video_metadata-178"><a href="#VideoMetadata.extract_video_metadata-178"><span class="linenos">178</span></a>        <span class="p">}</span>
 </span></pre></div>
 
 
@@ -1046,54 +1046,54 @@ Returns:
 
 
                             </div>
-                            <div id="YtdlpMetadata.from_yt_dlp" class="classattr">
-                                        <input id="YtdlpMetadata.from_yt_dlp-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                            <div id="VideoMetadata.from_yt_dlp" class="classattr">
+                                        <input id="VideoMetadata.from_yt_dlp-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">from_yt_dlp</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">url</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span></span><span class="return-annotation">) -> <span class="n"><a href="#YtdlpMetadata">YtdlpMetadata</a></span>:</span></span>
+        <span class="name">from_yt_dlp</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">url</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span></span><span class="return-annotation">) -> <span class="n"><a href="#VideoMetadata">VideoMetadata</a></span>:</span></span>
 
-                <label class="view-source-button" for="YtdlpMetadata.from_yt_dlp-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="VideoMetadata.from_yt_dlp-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#YtdlpMetadata.from_yt_dlp"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="YtdlpMetadata.from_yt_dlp-180"><a href="#YtdlpMetadata.from_yt_dlp-180"><span class="linenos">180</span></a>    <span class="nd">@classmethod</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-181"><a href="#YtdlpMetadata.from_yt_dlp-181"><span class="linenos">181</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_yt_dlp</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">YtdlpMetadata</span><span class="p">:</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-182"><a href="#YtdlpMetadata.from_yt_dlp-182"><span class="linenos">182</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a YtdlpMetadata instance from a yt-dlp info dict for a video.</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-183"><a href="#YtdlpMetadata.from_yt_dlp-183"><span class="linenos">183</span></a><span class="sd">            Args:</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-184"><a href="#YtdlpMetadata.from_yt_dlp-184"><span class="linenos">184</span></a><span class="sd">                url: The original URL of the video.</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-185"><a href="#YtdlpMetadata.from_yt_dlp-185"><span class="linenos">185</span></a><span class="sd">                info: The yt-dlp info dictionary for the video.</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-186"><a href="#YtdlpMetadata.from_yt_dlp-186"><span class="linenos">186</span></a><span class="sd">            Returns:</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-187"><a href="#YtdlpMetadata.from_yt_dlp-187"><span class="linenos">187</span></a><span class="sd">                A YtdlpMetadata instance populated with the extracted metadata.</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-188"><a href="#YtdlpMetadata.from_yt_dlp-188"><span class="linenos">188</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-189"><a href="#YtdlpMetadata.from_yt_dlp-189"><span class="linenos">189</span></a>        <span class="n">format_data</span> <span class="o">=</span> <span class="n">YtdlpMetadata</span><span class="o">.</span><span class="n">extract_video_metadata</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-190"><a href="#YtdlpMetadata.from_yt_dlp-190"><span class="linenos">190</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-191"><a href="#YtdlpMetadata.from_yt_dlp-191"><span class="linenos">191</span></a>            <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-192"><a href="#YtdlpMetadata.from_yt_dlp-192"><span class="linenos">192</span></a>            <span class="n">video_id</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-193"><a href="#YtdlpMetadata.from_yt_dlp-193"><span class="linenos">193</span></a>            <span class="n">title</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-194"><a href="#YtdlpMetadata.from_yt_dlp-194"><span class="linenos">194</span></a>            <span class="n">description</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-195"><a href="#YtdlpMetadata.from_yt_dlp-195"><span class="linenos">195</span></a>            <span class="n">channel</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;channel&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-196"><a href="#YtdlpMetadata.from_yt_dlp-196"><span class="linenos">196</span></a>            <span class="n">upload_date</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;upload_date&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-197"><a href="#YtdlpMetadata.from_yt_dlp-197"><span class="linenos">197</span></a>            <span class="n">duration</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-198"><a href="#YtdlpMetadata.from_yt_dlp-198"><span class="linenos">198</span></a>            <span class="n">webpage_url</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;webpage_url&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-199"><a href="#YtdlpMetadata.from_yt_dlp-199"><span class="linenos">199</span></a>            <span class="n">view_count</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;view_count&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-200"><a href="#YtdlpMetadata.from_yt_dlp-200"><span class="linenos">200</span></a>            <span class="n">like_count</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;like_count&quot;</span><span class="p">),</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-201"><a href="#YtdlpMetadata.from_yt_dlp-201"><span class="linenos">201</span></a>            <span class="n">ext</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;ext&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-202"><a href="#YtdlpMetadata.from_yt_dlp-202"><span class="linenos">202</span></a>            <span class="n">video_format</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;video_format&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-203"><a href="#YtdlpMetadata.from_yt_dlp-203"><span class="linenos">203</span></a>            <span class="n">filesize</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;filesize&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-204"><a href="#YtdlpMetadata.from_yt_dlp-204"><span class="linenos">204</span></a>            <span class="n">fps</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;fps&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-205"><a href="#YtdlpMetadata.from_yt_dlp-205"><span class="linenos">205</span></a>            <span class="n">resolution</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">],</span>
-</span><span id="YtdlpMetadata.from_yt_dlp-206"><a href="#YtdlpMetadata.from_yt_dlp-206"><span class="linenos">206</span></a>        <span class="p">)</span>
+    <a class="headerlink" href="#VideoMetadata.from_yt_dlp"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="VideoMetadata.from_yt_dlp-180"><a href="#VideoMetadata.from_yt_dlp-180"><span class="linenos">180</span></a>    <span class="nd">@classmethod</span>
+</span><span id="VideoMetadata.from_yt_dlp-181"><a href="#VideoMetadata.from_yt_dlp-181"><span class="linenos">181</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_yt_dlp</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">VideoMetadata</span><span class="p">:</span>
+</span><span id="VideoMetadata.from_yt_dlp-182"><a href="#VideoMetadata.from_yt_dlp-182"><span class="linenos">182</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a VideoMetadata instance from a yt-dlp info dict for a video.</span>
+</span><span id="VideoMetadata.from_yt_dlp-183"><a href="#VideoMetadata.from_yt_dlp-183"><span class="linenos">183</span></a><span class="sd">            Args:</span>
+</span><span id="VideoMetadata.from_yt_dlp-184"><a href="#VideoMetadata.from_yt_dlp-184"><span class="linenos">184</span></a><span class="sd">                url: The original URL of the video.</span>
+</span><span id="VideoMetadata.from_yt_dlp-185"><a href="#VideoMetadata.from_yt_dlp-185"><span class="linenos">185</span></a><span class="sd">                info: The yt-dlp info dictionary for the video.</span>
+</span><span id="VideoMetadata.from_yt_dlp-186"><a href="#VideoMetadata.from_yt_dlp-186"><span class="linenos">186</span></a><span class="sd">            Returns:</span>
+</span><span id="VideoMetadata.from_yt_dlp-187"><a href="#VideoMetadata.from_yt_dlp-187"><span class="linenos">187</span></a><span class="sd">                A VideoMetadata instance populated with the extracted metadata.</span>
+</span><span id="VideoMetadata.from_yt_dlp-188"><a href="#VideoMetadata.from_yt_dlp-188"><span class="linenos">188</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="VideoMetadata.from_yt_dlp-189"><a href="#VideoMetadata.from_yt_dlp-189"><span class="linenos">189</span></a>        <span class="n">format_data</span> <span class="o">=</span> <span class="n">VideoMetadata</span><span class="o">.</span><span class="n">extract_video_metadata</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+</span><span id="VideoMetadata.from_yt_dlp-190"><a href="#VideoMetadata.from_yt_dlp-190"><span class="linenos">190</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+</span><span id="VideoMetadata.from_yt_dlp-191"><a href="#VideoMetadata.from_yt_dlp-191"><span class="linenos">191</span></a>            <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+</span><span id="VideoMetadata.from_yt_dlp-192"><a href="#VideoMetadata.from_yt_dlp-192"><span class="linenos">192</span></a>            <span class="n">video_id</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata.from_yt_dlp-193"><a href="#VideoMetadata.from_yt_dlp-193"><span class="linenos">193</span></a>            <span class="n">title</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata.from_yt_dlp-194"><a href="#VideoMetadata.from_yt_dlp-194"><span class="linenos">194</span></a>            <span class="n">description</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.from_yt_dlp-195"><a href="#VideoMetadata.from_yt_dlp-195"><span class="linenos">195</span></a>            <span class="n">channel</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;channel&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.from_yt_dlp-196"><a href="#VideoMetadata.from_yt_dlp-196"><span class="linenos">196</span></a>            <span class="n">upload_date</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;upload_date&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.from_yt_dlp-197"><a href="#VideoMetadata.from_yt_dlp-197"><span class="linenos">197</span></a>            <span class="n">duration</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.from_yt_dlp-198"><a href="#VideoMetadata.from_yt_dlp-198"><span class="linenos">198</span></a>            <span class="n">webpage_url</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;webpage_url&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.from_yt_dlp-199"><a href="#VideoMetadata.from_yt_dlp-199"><span class="linenos">199</span></a>            <span class="n">view_count</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;view_count&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.from_yt_dlp-200"><a href="#VideoMetadata.from_yt_dlp-200"><span class="linenos">200</span></a>            <span class="n">like_count</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;like_count&quot;</span><span class="p">),</span>
+</span><span id="VideoMetadata.from_yt_dlp-201"><a href="#VideoMetadata.from_yt_dlp-201"><span class="linenos">201</span></a>            <span class="n">ext</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;ext&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata.from_yt_dlp-202"><a href="#VideoMetadata.from_yt_dlp-202"><span class="linenos">202</span></a>            <span class="n">video_format</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;video_format&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata.from_yt_dlp-203"><a href="#VideoMetadata.from_yt_dlp-203"><span class="linenos">203</span></a>            <span class="n">filesize</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;filesize&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata.from_yt_dlp-204"><a href="#VideoMetadata.from_yt_dlp-204"><span class="linenos">204</span></a>            <span class="n">fps</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;fps&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata.from_yt_dlp-205"><a href="#VideoMetadata.from_yt_dlp-205"><span class="linenos">205</span></a>            <span class="n">resolution</span><span class="o">=</span><span class="n">format_data</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">],</span>
+</span><span id="VideoMetadata.from_yt_dlp-206"><a href="#VideoMetadata.from_yt_dlp-206"><span class="linenos">206</span></a>        <span class="p">)</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Create a YtdlpMetadata instance from a yt-dlp info dict for a video.
+            <div class="docstring"><p>Create a VideoMetadata instance from a yt-dlp info dict for a video.
 Args:
     url: The original URL of the video.
     info: The yt-dlp info dictionary for the video.
 Returns:
-    A YtdlpMetadata instance populated with the extracted metadata.</p>
+    A VideoMetadata instance populated with the extracted metadata.</p>
 </div>
 
 
