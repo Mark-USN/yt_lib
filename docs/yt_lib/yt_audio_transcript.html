@@ -144,7 +144,7 @@ cooperative cancellation.</p>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">whisper</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_dlp</span><span class="w"> </span><span class="kn">import</span> <span class="n">YoutubeDL</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="c1"># from yt_lib.utils.app_context import RuntimeContext</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.utils.ffmpeg_bootstrap</span><span class="w"> </span><span class="kn">import</span> <span class="n">ensure_ffmpeg_on_path</span><span class="p">,</span> <span class="n">get_ffmpeg_binary_path</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="c1"># from yt_lib.utils.ffmpeg_bootstrap import ensure_ffmpeg_on_path, get_ffmpeg_binary_path</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.yt_ids</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_video_id</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.utils.log_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span> <span class="c1"># , log_tree</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
@@ -264,8 +264,8 @@ cooperative cancellation.</p>
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="k">else</span><span class="p">:</span>
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="n">output_template</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">audio_dir</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">%(id)s</span><span class="s2">.</span><span class="si">%(ext)s</span><span class="s2">&quot;</span><span class="p">)</span>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>        <span class="c1"># Make sure we have an ffmpeg directory for yt_dlp to use.</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="n">ffmpeg_dir</span> <span class="o">=</span> <span class="n">get_ffmpeg_binary_path</span><span class="p">()</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>        <span class="c1"># # Make sure we have an ffmpeg directory for yt_dlp to use.</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="c1"># ffmpeg_dir = get_ffmpeg_binary_path()</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="n">ydl_opts</span> <span class="o">=</span> <span class="p">{</span>
 </span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>            <span class="s2">&quot;extract-audio&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>               <span class="c1"># Extract audio from video.</span>
@@ -285,9 +285,9 @@ cooperative cancellation.</p>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>            <span class="p">],</span>
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>        <span class="p">}</span>
 </span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>
-</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>        <span class="k">if</span> <span class="n">ffmpeg_dir</span><span class="p">:</span>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>            <span class="c1"># Explicitly tell yt_dlp where ffmpeg lives</span>
-</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>            <span class="n">ydl_opts</span><span class="p">[</span><span class="s2">&quot;ffmpeg_location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ffmpeg_dir</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>        <span class="c1"># if ffmpeg_dir:</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>        <span class="c1">#     # Explicitly tell yt_dlp where ffmpeg lives</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>        <span class="c1">#     ydl_opts[&quot;ffmpeg_location&quot;] = ffmpeg_dir</span>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>        <span class="k">with</span> <span class="n">YoutubeDL</span><span class="p">(</span><span class="n">ydl_opts</span><span class="p">)</span> <span class="k">as</span> <span class="n">ydl</span><span class="p">:</span>
 </span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>            <span class="n">info</span> <span class="o">=</span> <span class="n">ydl</span><span class="o">.</span><span class="n">extract_info</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -560,8 +560,8 @@ cooperative cancellation.</p>
 </span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>    <span class="k">if</span> <span class="n">progress_cb</span><span class="p">:</span>
 </span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>        <span class="n">progress_cb</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="s2">&quot;downloading audio&quot;</span><span class="p">)</span>
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="n">ffmpeg_dir</span> <span class="o">=</span> <span class="n">ensure_ffmpeg_on_path</span><span class="p">()</span>
-</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using ffmpeg from: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ffmpeg_dir</span><span class="p">)</span>
+</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="c1"># ffmpeg_dir = ensure_ffmpeg_on_path()</span>
+</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>    <span class="c1"># logger.info(&quot;Using ffmpeg from: %s&quot;, ffmpeg_dir)</span>
 </span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>
 </span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>    <span class="c1"># Download audio (blocking) -&gt; worker thread</span>
 </span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>    <span class="k">try</span><span class="p">:</span>
@@ -690,13 +690,13 @@ cooperative cancellation.</p>
 </span><span id="L-562"><a href="#L-562"><span class="linenos">562</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">yt_url</span><span class="p">:</span>
 </span><span id="L-563"><a href="#L-563"><span class="linenos">563</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please paste a valid YouTube URL.&quot;</span><span class="p">)</span>
 </span><span id="L-564"><a href="#L-564"><span class="linenos">564</span></a>
-</span><span id="L-565"><a href="#L-565"><span class="linenos">565</span></a>    <span class="n">ffmpeg_path</span> <span class="o">=</span> <span class="n">ensure_ffmpeg_on_path</span><span class="p">()</span>
-</span><span id="L-566"><a href="#L-566"><span class="linenos">566</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">ffmpeg_path</span><span class="p">:</span>
-</span><span id="L-567"><a href="#L-567"><span class="linenos">567</span></a>        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
-</span><span id="L-568"><a href="#L-568"><span class="linenos">568</span></a>            <span class="s2">&quot;FFmpeg is not available. Please install &quot;</span>
-</span><span id="L-569"><a href="#L-569"><span class="linenos">569</span></a>            <span class="s2">&quot;FFmpeg and ensure it is on the system PATH.&quot;</span>
-</span><span id="L-570"><a href="#L-570"><span class="linenos">570</span></a>        <span class="p">)</span>
-</span><span id="L-571"><a href="#L-571"><span class="linenos">571</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using ffmpeg at </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">get_ffmpeg_binary_path</span><span class="p">())</span>
+</span><span id="L-565"><a href="#L-565"><span class="linenos">565</span></a>    <span class="c1"># ffmpeg_path = ensure_ffmpeg_on_path()</span>
+</span><span id="L-566"><a href="#L-566"><span class="linenos">566</span></a>    <span class="c1"># if not ffmpeg_path:</span>
+</span><span id="L-567"><a href="#L-567"><span class="linenos">567</span></a>    <span class="c1">#     raise SystemExit(</span>
+</span><span id="L-568"><a href="#L-568"><span class="linenos">568</span></a>    <span class="c1">#         &quot;FFmpeg is not available. Please install &quot;</span>
+</span><span id="L-569"><a href="#L-569"><span class="linenos">569</span></a>    <span class="c1">#         &quot;FFmpeg and ensure it is on the system PATH.&quot;</span>
+</span><span id="L-570"><a href="#L-570"><span class="linenos">570</span></a>    <span class="c1">#     )</span>
+</span><span id="L-571"><a href="#L-571"><span class="linenos">571</span></a>    <span class="c1"># logger.info(&quot;Using ffmpeg at %s&quot;, get_ffmpeg_binary_path())</span>
 </span><span id="L-572"><a href="#L-572"><span class="linenos">572</span></a>
 </span><span id="L-573"><a href="#L-573"><span class="linenos">573</span></a>    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 </span><span id="L-574"><a href="#L-574"><span class="linenos">574</span></a>    <span class="n">json_trans</span> <span class="o">=</span> <span class="n">yt_audio_json</span><span class="p">(</span><span class="n">yt_url</span><span class="p">)</span>
@@ -981,8 +981,8 @@ Args:
 </span><span id="download_audio-137"><a href="#download_audio-137"><span class="linenos">137</span></a>    <span class="k">else</span><span class="p">:</span>
 </span><span id="download_audio-138"><a href="#download_audio-138"><span class="linenos">138</span></a>        <span class="n">output_template</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">audio_dir</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">%(id)s</span><span class="s2">.</span><span class="si">%(ext)s</span><span class="s2">&quot;</span><span class="p">)</span>
 </span><span id="download_audio-139"><a href="#download_audio-139"><span class="linenos">139</span></a>
-</span><span id="download_audio-140"><a href="#download_audio-140"><span class="linenos">140</span></a>        <span class="c1"># Make sure we have an ffmpeg directory for yt_dlp to use.</span>
-</span><span id="download_audio-141"><a href="#download_audio-141"><span class="linenos">141</span></a>        <span class="n">ffmpeg_dir</span> <span class="o">=</span> <span class="n">get_ffmpeg_binary_path</span><span class="p">()</span>
+</span><span id="download_audio-140"><a href="#download_audio-140"><span class="linenos">140</span></a>        <span class="c1"># # Make sure we have an ffmpeg directory for yt_dlp to use.</span>
+</span><span id="download_audio-141"><a href="#download_audio-141"><span class="linenos">141</span></a>        <span class="c1"># ffmpeg_dir = get_ffmpeg_binary_path()</span>
 </span><span id="download_audio-142"><a href="#download_audio-142"><span class="linenos">142</span></a>
 </span><span id="download_audio-143"><a href="#download_audio-143"><span class="linenos">143</span></a>        <span class="n">ydl_opts</span> <span class="o">=</span> <span class="p">{</span>
 </span><span id="download_audio-144"><a href="#download_audio-144"><span class="linenos">144</span></a>            <span class="s2">&quot;extract-audio&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>               <span class="c1"># Extract audio from video.</span>
@@ -1002,9 +1002,9 @@ Args:
 </span><span id="download_audio-158"><a href="#download_audio-158"><span class="linenos">158</span></a>            <span class="p">],</span>
 </span><span id="download_audio-159"><a href="#download_audio-159"><span class="linenos">159</span></a>        <span class="p">}</span>
 </span><span id="download_audio-160"><a href="#download_audio-160"><span class="linenos">160</span></a>
-</span><span id="download_audio-161"><a href="#download_audio-161"><span class="linenos">161</span></a>        <span class="k">if</span> <span class="n">ffmpeg_dir</span><span class="p">:</span>
-</span><span id="download_audio-162"><a href="#download_audio-162"><span class="linenos">162</span></a>            <span class="c1"># Explicitly tell yt_dlp where ffmpeg lives</span>
-</span><span id="download_audio-163"><a href="#download_audio-163"><span class="linenos">163</span></a>            <span class="n">ydl_opts</span><span class="p">[</span><span class="s2">&quot;ffmpeg_location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ffmpeg_dir</span>
+</span><span id="download_audio-161"><a href="#download_audio-161"><span class="linenos">161</span></a>        <span class="c1"># if ffmpeg_dir:</span>
+</span><span id="download_audio-162"><a href="#download_audio-162"><span class="linenos">162</span></a>        <span class="c1">#     # Explicitly tell yt_dlp where ffmpeg lives</span>
+</span><span id="download_audio-163"><a href="#download_audio-163"><span class="linenos">163</span></a>        <span class="c1">#     ydl_opts[&quot;ffmpeg_location&quot;] = ffmpeg_dir</span>
 </span><span id="download_audio-164"><a href="#download_audio-164"><span class="linenos">164</span></a>
 </span><span id="download_audio-165"><a href="#download_audio-165"><span class="linenos">165</span></a>        <span class="k">with</span> <span class="n">YoutubeDL</span><span class="p">(</span><span class="n">ydl_opts</span><span class="p">)</span> <span class="k">as</span> <span class="n">ydl</span><span class="p">:</span>
 </span><span id="download_audio-166"><a href="#download_audio-166"><span class="linenos">166</span></a>            <span class="n">info</span> <span class="o">=</span> <span class="n">ydl</span><span class="o">.</span><span class="n">extract_info</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1359,8 +1359,8 @@ Returns:
 </span><span id="fetch_audio_transcript_async-433"><a href="#fetch_audio_transcript_async-433"><span class="linenos">433</span></a>    <span class="k">if</span> <span class="n">progress_cb</span><span class="p">:</span>
 </span><span id="fetch_audio_transcript_async-434"><a href="#fetch_audio_transcript_async-434"><span class="linenos">434</span></a>        <span class="n">progress_cb</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="s2">&quot;downloading audio&quot;</span><span class="p">)</span>
 </span><span id="fetch_audio_transcript_async-435"><a href="#fetch_audio_transcript_async-435"><span class="linenos">435</span></a>
-</span><span id="fetch_audio_transcript_async-436"><a href="#fetch_audio_transcript_async-436"><span class="linenos">436</span></a>    <span class="n">ffmpeg_dir</span> <span class="o">=</span> <span class="n">ensure_ffmpeg_on_path</span><span class="p">()</span>
-</span><span id="fetch_audio_transcript_async-437"><a href="#fetch_audio_transcript_async-437"><span class="linenos">437</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using ffmpeg from: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ffmpeg_dir</span><span class="p">)</span>
+</span><span id="fetch_audio_transcript_async-436"><a href="#fetch_audio_transcript_async-436"><span class="linenos">436</span></a>    <span class="c1"># ffmpeg_dir = ensure_ffmpeg_on_path()</span>
+</span><span id="fetch_audio_transcript_async-437"><a href="#fetch_audio_transcript_async-437"><span class="linenos">437</span></a>    <span class="c1"># logger.info(&quot;Using ffmpeg from: %s&quot;, ffmpeg_dir)</span>
 </span><span id="fetch_audio_transcript_async-438"><a href="#fetch_audio_transcript_async-438"><span class="linenos">438</span></a>
 </span><span id="fetch_audio_transcript_async-439"><a href="#fetch_audio_transcript_async-439"><span class="linenos">439</span></a>    <span class="c1"># Download audio (blocking) -&gt; worker thread</span>
 </span><span id="fetch_audio_transcript_async-440"><a href="#fetch_audio_transcript_async-440"><span class="linenos">440</span></a>    <span class="k">try</span><span class="p">:</span>
@@ -1575,13 +1575,13 @@ Raises:
 </span><span id="test-563"><a href="#test-563"><span class="linenos">563</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">yt_url</span><span class="p">:</span>
 </span><span id="test-564"><a href="#test-564"><span class="linenos">564</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please paste a valid YouTube URL.&quot;</span><span class="p">)</span>
 </span><span id="test-565"><a href="#test-565"><span class="linenos">565</span></a>
-</span><span id="test-566"><a href="#test-566"><span class="linenos">566</span></a>    <span class="n">ffmpeg_path</span> <span class="o">=</span> <span class="n">ensure_ffmpeg_on_path</span><span class="p">()</span>
-</span><span id="test-567"><a href="#test-567"><span class="linenos">567</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">ffmpeg_path</span><span class="p">:</span>
-</span><span id="test-568"><a href="#test-568"><span class="linenos">568</span></a>        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
-</span><span id="test-569"><a href="#test-569"><span class="linenos">569</span></a>            <span class="s2">&quot;FFmpeg is not available. Please install &quot;</span>
-</span><span id="test-570"><a href="#test-570"><span class="linenos">570</span></a>            <span class="s2">&quot;FFmpeg and ensure it is on the system PATH.&quot;</span>
-</span><span id="test-571"><a href="#test-571"><span class="linenos">571</span></a>        <span class="p">)</span>
-</span><span id="test-572"><a href="#test-572"><span class="linenos">572</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using ffmpeg at </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">get_ffmpeg_binary_path</span><span class="p">())</span>
+</span><span id="test-566"><a href="#test-566"><span class="linenos">566</span></a>    <span class="c1"># ffmpeg_path = ensure_ffmpeg_on_path()</span>
+</span><span id="test-567"><a href="#test-567"><span class="linenos">567</span></a>    <span class="c1"># if not ffmpeg_path:</span>
+</span><span id="test-568"><a href="#test-568"><span class="linenos">568</span></a>    <span class="c1">#     raise SystemExit(</span>
+</span><span id="test-569"><a href="#test-569"><span class="linenos">569</span></a>    <span class="c1">#         &quot;FFmpeg is not available. Please install &quot;</span>
+</span><span id="test-570"><a href="#test-570"><span class="linenos">570</span></a>    <span class="c1">#         &quot;FFmpeg and ensure it is on the system PATH.&quot;</span>
+</span><span id="test-571"><a href="#test-571"><span class="linenos">571</span></a>    <span class="c1">#     )</span>
+</span><span id="test-572"><a href="#test-572"><span class="linenos">572</span></a>    <span class="c1"># logger.info(&quot;Using ffmpeg at %s&quot;, get_ffmpeg_binary_path())</span>
 </span><span id="test-573"><a href="#test-573"><span class="linenos">573</span></a>
 </span><span id="test-574"><a href="#test-574"><span class="linenos">574</span></a>    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 </span><span id="test-575"><a href="#test-575"><span class="linenos">575</span></a>    <span class="n">json_trans</span> <span class="o">=</span> <span class="n">yt_audio_json</span><span class="p">(</span><span class="n">yt_url</span><span class="p">)</span>

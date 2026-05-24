@@ -16,7 +16,7 @@ from collections.abc import Callable
 import whisper
 from yt_dlp import YoutubeDL
 # from yt_lib.utils.app_context import RuntimeContext
-from yt_lib.utils.ffmpeg_bootstrap import ensure_ffmpeg_on_path, get_ffmpeg_binary_path
+# from yt_lib.utils.ffmpeg_bootstrap import ensure_ffmpeg_on_path, get_ffmpeg_binary_path
 from yt_lib.yt_ids import extract_video_id
 from yt_lib.utils.log_utils import get_logger # , log_tree
 
@@ -136,8 +136,8 @@ def download_audio(url: str, video_id: str) -> Path:
     else:
         output_template = str(audio_dir / "%(id)s.%(ext)s")
 
-        # Make sure we have an ffmpeg directory for yt_dlp to use.
-        ffmpeg_dir = get_ffmpeg_binary_path()
+        # # Make sure we have an ffmpeg directory for yt_dlp to use.
+        # ffmpeg_dir = get_ffmpeg_binary_path()
 
         ydl_opts = {
             "extract-audio": True,               # Extract audio from video.
@@ -157,9 +157,9 @@ def download_audio(url: str, video_id: str) -> Path:
             ],
         }
 
-        if ffmpeg_dir:
-            # Explicitly tell yt_dlp where ffmpeg lives
-            ydl_opts["ffmpeg_location"] = ffmpeg_dir
+        # if ffmpeg_dir:
+        #     # Explicitly tell yt_dlp where ffmpeg lives
+        #     ydl_opts["ffmpeg_location"] = ffmpeg_dir
 
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
@@ -432,8 +432,8 @@ async def fetch_audio_transcript_async(
     if progress_cb:
         progress_cb(0.01, "downloading audio")
 
-    ffmpeg_dir = ensure_ffmpeg_on_path()
-    logger.info("Using ffmpeg from: %s", ffmpeg_dir)
+    # ffmpeg_dir = ensure_ffmpeg_on_path()
+    # logger.info("Using ffmpeg from: %s", ffmpeg_dir)
 
     # Download audio (blocking) -> worker thread
     try:
@@ -562,13 +562,13 @@ def test() -> None:
         if not yt_url:
             logger.warning("Please paste a valid YouTube URL.")
 
-    ffmpeg_path = ensure_ffmpeg_on_path()
-    if not ffmpeg_path:
-        raise SystemExit(
-            "FFmpeg is not available. Please install "
-            "FFmpeg and ensure it is on the system PATH."
-        )
-    logger.info("Using ffmpeg at %s", get_ffmpeg_binary_path())
+    # ffmpeg_path = ensure_ffmpeg_on_path()
+    # if not ffmpeg_path:
+    #     raise SystemExit(
+    #         "FFmpeg is not available. Please install "
+    #         "FFmpeg and ensure it is on the system PATH."
+    #     )
+    # logger.info("Using ffmpeg at %s", get_ffmpeg_binary_path())
 
     start = time.perf_counter()
     json_trans = yt_audio_json(yt_url)

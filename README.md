@@ -161,14 +161,14 @@ never seen this trick before the idea is that  
 Start: 5.76
 Duration: 5.72
 ```
-### Notes
 
-- Transcript results are returned as lists of snippet dictionaries.
-- Each snippet contains:
-  - `text`
-  - `start`
-  - `duration`
-- Cached transcripts are stored as JSON files.
+>[!NOTE]
+> - Transcript results are returned as lists of snippet dictionaries.
+> - Each snippet contains:
+>   - `text`
+>   - `start`
+>   - `duration`
+> - Cached transcripts are stored as JSON files.
 
 
 ## Example: yt_video_info.py
@@ -198,10 +198,9 @@ Duration: 270
 ```
 ---
 
-### Notes
-
-- `ffmpeg` must be available in the system `PATH` for audio transcription features.
-- `Deno` must be installed for the `yt_video_info` module to function correctly.
+>[!NOTE]
+> - `ffmpeg` must be available in the system `PATH` for audio transcription features.
+> - `Deno` must be installed for the `yt_video_info` module to function correctly.
 
 # Sources:
 ## [yt_lib GitHub Repository](https://github.com/Mark_USN/yt_lib)
