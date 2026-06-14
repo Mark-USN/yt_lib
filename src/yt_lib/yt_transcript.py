@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import secrets
 import threading
 import time
@@ -31,7 +30,7 @@ from datetime import timedelta
 from contextlib import contextmanager
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TypedDict, Protocol
+from typing import Protocol
 # from urllib.parse import parse_qs, urlparse
 from youtube_transcript_api import (
     FetchedTranscript,
@@ -42,7 +41,7 @@ from youtube_transcript_api import (
     YouTubeTranscriptApi,
 )
 from yt_lib.utils.log_utils import get_logger
-from yt_lib.yt_ids import extract_video_id
+from yt_lib.yt_types import extract_video_id, Snippet
 
 logger = get_logger(__name__)
 
@@ -50,14 +49,14 @@ class TranscriptPathProvider(Protocol):
     """ Prototype to translate app_context methods into a simple protocol for this module,
         to avoid a hard dependency on the full app context. 
     """
-    def transcript_path(self, video_id: str) -> Path: ...
-    """ Directory and file name to 'cache' transcripts for a given video ID.
-        Args:
-            video_id: The YouTube video ID for which to provide a transcript cache path.
-        Returns:
-            A Path object representing the file path where the transcript for the given video
-            ID should be cached.
-    """
+    def transcript_path(self, video_id: str) -> Path:
+        """ Directory and file name to 'cache' transcripts for a given video ID.
+            Args:
+                video_id: The YouTube video ID for which to provide a transcript cache path.
+            Returns:
+                A Path object representing the file path where the transcript for the given video
+                ID should be cached.
+        """
 
 
 # Global context for cache path provider; must be set by MCP at runtime before use.
@@ -71,7 +70,7 @@ def set_context(context: TranscriptPathProvider) -> None:
                     a method `transcript_path(video_id: str) -> Path` to determine where to cache
                     transcripts for a given video ID.
     """
-    global _CONTEXT
+    global _CONTEXT             #pylint: disable=global-statement
     _CONTEXT = context
 
 
@@ -96,12 +95,11 @@ _MAX_CONCURRENT_FETCHES = int(os.environ.get("MCP_TRANSCRIPT_MAX_CONCURRENCY", "
 _FETCH_SEM = threading.BoundedSemaphore(value=max(1, _MAX_CONCURRENT_FETCHES))
 
 
-class TranscriptSnippet(TypedDict):
-    """ Raw transcript snippet shape returned by `FetchedTranscript.to_raw_data()`."""
-
-    text: str
-    start: float
-    duration: float
+# class TranscriptSnippet(TypedDict):
+#     """ Raw transcript snippet shape returned by `FetchedTranscript.to_raw_data()`."""
+#     text: str
+#     start: float
+#     duration: float
 
 
 #: Default language priority (descending).
@@ -188,7 +186,7 @@ def _atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> Non
             pass
 
 def _as_raw_snippets(transcript: FetchedTranscript |
-                        list[TranscriptSnippet]) -> list[TranscriptSnippet]:
+                        list[Snippet]) -> list[Snippet]:
     """ Normalize transcript output to raw JSON-serializable snippet dicts.
         Args:
             transcript: Either a `FetchedTranscript` object or a list of raw snippet dicts.
@@ -202,9 +200,9 @@ def _as_raw_snippets(transcript: FetchedTranscript |
 
 
 def transcript_to_list_and_cache(
-    transcript: FetchedTranscript | list[TranscriptSnippet] | None,
+    transcript: FetchedTranscript | list[Snippet] | None,
     cache_path: Path,
-) -> list[TranscriptSnippet] | None:
+) -> list[Snippet] | None:
     """ Convert a fetched transcript into raw snippet dictionaries and cache to disk.
         This is "best effort" caching: any write failure is logged and the transcript
         is still returned.
@@ -213,7 +211,7 @@ def transcript_to_list_and_cache(
                 or None.
             cache_path: Destination JSON path.
         Returns:
-            The transcript as `list[TranscriptSnippet]`, or None.
+            The transcript as `list[Snippet]`, or None.
     """
 
     if transcript is None:
@@ -236,7 +234,7 @@ def transcript_to_list_and_cache(
 def fetch_transcript(
     url_or_id: str,
     prefer_langs: Sequence[str] | None = None,
-) -> list[TranscriptSnippet] | None:
+) -> list[Snippet] | None:
     """ Fetch a transcript for a YouTube video and return raw snippet dicts.
         Args:
             url_or_id: YouTube URL or video id.
@@ -337,68 +335,14 @@ def fetch_transcript(
         return transcript_to_list_and_cache(fetched, cache_path)
 
 
-_SENTENCE_PATTERN: re.Pattern[str] = re.compile(
-    r'(.+?(?<!\b[A-Z]\.)(?<!\b[A-Z][a-z]\.)[.!?…]+["\')\]]*)(?=\s|$)'
-)
-
-def split_sentences(text: str) -> tuple[list[str], str]:
-    """ Split text into sentences using a regex pattern.
-        Args:
-            text: The text to split.
-        Returns:
-            A tuple containing a list of sentences and the remaining text.
-    """
-    out: list[str] = []
-    last_end = 0
-
-    for m in _SENTENCE_PATTERN.finditer(text):
-        out.append(m.group(1).strip())
-        last_end = m.end()
-
-    remainder = text[last_end:].strip()
-    return out, remainder
-
-
-def json_to_sentences(transcript_list: Sequence["TranscriptSnippet"]) -> str:
-    """ Convert a list of transcript snippets into a single string with sentence-like chunks.
-    Args:
-        transcript_list: A list of transcript snippets.
-
-    Returns:
-        A single string with sentence-like chunks.
-    """
-    sentences: list[str] = []
-    for snip in transcript_list:
-        part = str(snip.get("text", "")).strip()
-        if not part:
-            continue
-        sentences.append(part)
-
-    # prev_end = ""  # initialize!
-
-    # for snip in transcript_list:
-    #     part = str(snip.get("text", "")).strip()
-    #     if not part:
-    #         continue
-
-    #     chunk = f"{prev_end} {part}".strip() if prev_end else part
-
-    #     sentence_list, prev_end = split_sentences(chunk)
-    #     sentences.extend(sentence_list)
-
-    # if prev_end:
-    #     sentences.append(prev_end)
-
-    return "\n".join(sentences)
-
 def yt_json(
     url_or_id: str,
     prefer_langs: Sequence[str] | None = None,
-) -> list[TranscriptSnippet] | None:
+) -> list[Snippet] | None:
     """ Return the raw transcript snippets (typed), or None.
         This is the "structured" variant intended for typed workflow engines.
         It returns the same data that `fetch_transcript()` produces (a list of
-        TranscriptSnippet dicts), without JSON serialization.
+        Snippet dicts), without JSON serialization.
         Args:
             url_or_id: YouTube URL or video id.
             prefer_langs: Preferred language codes (descending priority).
@@ -406,44 +350,6 @@ def yt_json(
             A JSON string or None.
     """
     return fetch_transcript(url_or_id, prefer_langs)
-
-def yt_text(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> str | None:
-    """ Return the transcript as a single space-joined string, or None.
-        Args:
-            url_or_id: YouTube URL or video id.
-            prefer_langs: Preferred language codes (descending priority).
-        Returns:
-            A single string with the transcript, or None.
-    """
-
-    transcript_list = fetch_transcript(url_or_id, prefer_langs)
-    if transcript_list is None:
-        return None
-
-    # Combine all text snippets into a single string.
-    return " ".join(snippet.get("text", "") for snippet in transcript_list).strip()
-
-
-def yt_sentences(url_or_id: str, prefer_langs: Sequence[str] | None = None) -> str | None:
-    """ Return the transcript as paragraph-separated text, or None.
-        Args:
-            url_or_id: YouTube URL or video id.
-            prefer_langs: Preferred language codes (descending priority).
-        Returns:
-            A single string with the transcript, or None.
-
-        Due to punctuation and formatting inconsistencies in YouTube transcripts and
-        the incoherent timing of snippets, a reliable way to do this without using 
-        an external NLP library has not been found.
-    """
-
-    transcript_list = fetch_transcript(url_or_id, prefer_langs)
-    if transcript_list is None:
-        return None
-
-    # Combine all text snippets into a single string.
-    return json_to_sentences(transcript_list)
-
 
 # ---------------------------------------------------------------------------
 # Test / CLI entry point (not a formal unit test, just a quick way to run and see results)q
@@ -468,19 +374,6 @@ def test() -> None:
     print(trans)
     print(f"\nTranscribed in {timedelta(seconds=elapsed)}.\n")
 
-    start = time.perf_counter()
-    trans = yt_text(yt_url)
-    elapsed = time.perf_counter() - start
-    print("\n\n--- TEXT TRANSCRIPT ---\n")
-    print(trans)
-    print(f"\nTranscribed in {timedelta(seconds=elapsed)}.\n")
-
-    start = time.perf_counter()
-    trans = yt_sentences(yt_url)
-    elapsed = time.perf_counter() - start
-    print("\n\n--- PARAGRAPH TRANSCRIPT ---\n")
-    print(trans)
-    print(f"\nTranscribed in {timedelta(seconds=elapsed)}.\n")
 
 
 if __name__ == "__main__":

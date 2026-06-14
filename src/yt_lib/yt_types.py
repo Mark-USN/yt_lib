@@ -3,11 +3,103 @@
 from __future__ import annotations
 
 import re
-# from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Final, Any
+from typing import Final, Any, TypedDict, Protocol
 from urllib.parse import parse_qs, urlparse
+
+
+class Snippet(TypedDict):
+    """ Raw snippet shape returned by `FetchedTranscript.to_raw_data()`."""
+    text: str
+    start: float
+    duration: float
+
+
+class ProgressReporter(Protocol):
+    """ Protocol for reporting progress of an asynchronous operation."""
+
+    @property
+    def current(self) -> int | None:
+        """ Returns the current progress value, or None if not available."""
+
+    @property
+    def total(self) -> int:
+        """ Returns the total progress value."""
+
+    async def set_total(self, total: int) -> None:
+        """ Sets the total progress value."""
+
+    async def set_message(self, message: str | None) -> None:
+        """ Sets the progress status message."""
+
+    async def increment(self, amount: int = 1) -> None:
+        """ Atomically increment the current progress value."""
+
+
+@dataclass(slots=True)
+class IntegerProgressAllocator:
+    """ Utility class to allocate integer progress increments based on a total range and number
+        of steps.
+    """
+    start: int
+    total_range: int
+    steps: int
+    last_reported: int
+
+    @classmethod
+    def from_progress(cls, *, current: int, total: int, steps: int) -> "IntegerProgressAllocator":
+        """ Factory method to create an IntegerProgressAllocator from current and total
+            progress values
+            Args:
+                current: The current progress value.
+                total: The total progress value.
+                steps: The number of steps to divide the remaining progress into.
+            Returns:
+                An instance of IntegerProgressAllocator.
+            Raises:
+                ValueError: If steps is not greater than zero.
+        """
+        if steps <= 0:
+            raise ValueError("steps must be greater than zero")
+
+        return cls(
+            start=current,
+            total_range=total - current,
+            steps=steps,
+            last_reported=current,
+        )
+
+    def delta_for_completed_steps(self, completed_steps: int) -> int:
+        """ Calculate the progress delta for a given number of completed steps.
+            Args:
+                completed_steps: The number of steps that have been completed.
+            Returns:
+                The progress delta for the completed steps.
+        """
+        completed_steps = min(max(completed_steps, 0), self.steps)
+
+        target = self.start + round(
+            self.total_range * completed_steps / self.steps
+        )
+
+        delta = target - self.last_reported
+        self.last_reported = target
+
+        return max(delta, 0)
+
+    def final_delta(self) -> int:
+        """ Calculate the final progress delta to reach the total, regardless of steps completed.
+            Returns:
+                The final progress delta to reach the total.
+        """
+        target = self.start + self.total_range
+        delta = target - self.last_reported
+        self.last_reported = target
+        return max(delta, 0)
+
+
+
 
 _VIDEO_ID_RE: Final = re.compile(r"^[A-Za-z0-9_-]{11}$")
 _PLAYLIST_ID_RE: Final = re.compile(r"^(PL|UU|LL|FL|OL|RD|WL)[A-Za-z0-9_-]{10,200}$")

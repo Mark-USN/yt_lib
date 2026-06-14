@@ -16,7 +16,7 @@ from typing import Any, Annotated
 from pydantic import Field
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from yt_lib.yt_ids import (
+from yt_lib.yt_types import (
         extract_video_id,
         is_playlist_id,
         extract_playlist_id
@@ -32,7 +32,13 @@ _SEARCH_SEM = threading.BoundedSemaphore(value=max(1, _MAX_CONCURRENT_FETCHES))
 
 
 def yt_execute(req, *, label: str = "") -> dict[str, Any]:
-    """Execute a googleapiclient request with debug logging."""
+    """ Execute a googleapiclient request with debug logging.
+        Args:
+            req: The googleapiclient request object to execute.
+            label: An optional label for logging purposes.
+        Returns:
+            The response from the executed request as a dictionary.
+    """
     if logger.isEnabledFor(logging.DEBUG):
         log_tree(
             logger,

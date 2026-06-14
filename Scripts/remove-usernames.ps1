@@ -1,3 +1,4 @@
+
 $root = ".\docs"
 
 $pattern = 'C:/Users/' + [regex]::Escape($env:USERNAME)
@@ -15,3 +16,4 @@ ForEach-Object {
         Write-Host "Updated $($_.FullName)"
     }
 }
+

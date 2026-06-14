@@ -41,13 +41,29 @@ _LOCALE_NAME_MAX_LENGTH = 85
 
 
 def _round_half_up(value: float | Decimal) -> int:
-    """Round a number to the nearest integer using round-half-up."""
+    """ Round a number to the nearest integer using round-half-up.
+        Args:
+            value: The number to round.
+        Returns:
+            The rounded integer.
+    """
     return int(Decimal(str(value)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
 @dataclass(slots=True, frozen=True)
 class BaseContext:
-    """Resolved runtime context for application paths and locale."""
+    """ Resolved runtime context for application paths and locale.
+        Args:
+            app_name: The name of the application.
+            app_author: The author of the application.
+            app_dir: The base directory of the application.
+            locale: The locale of the application.
+            cache_dir: The directory for cache files.
+            config_dir: The directory for configuration files.
+            data_dir: The directory for data files.
+            state_dir: The directory for state files.
+            log_dir: The directory for log files.
+    """
 
     app_name: str
     app_author: str
@@ -62,7 +78,7 @@ class BaseContext:
 
 
 def get_windows_user_posix_locale() -> str:
-    """Return the Windows user's locale, such as 'en-US'.
+    """ Return the Windows user's locale, such as 'en-US'.
 
         This uses the Windows API because Python's locale helpers may not return
         a usable POSIX/Babel-style locale name on Windows.
@@ -82,7 +98,10 @@ def get_windows_user_posix_locale() -> str:
 
 
 def get_system_posix_locale() -> str:
-    """Return a POSIX-style locale name for non-Windows platforms."""
+    """ Return a POSIX-style locale name for non-Windows platforms.
+        Returns:
+            A locale string in the format language_COUNTRY, suitable for Babel.
+    """
     loc = py_locale.getlocale()[0]
     if loc:
         return loc
@@ -119,7 +138,7 @@ def detect_locale(default: str = "en_US") -> str:
 
 
 def _env_path(name: str) -> Path | None:
-    """Return a Path from an environment variable, if it is set.
+    """ Return a Path from an environment variable, if it is set.
         Args:
             name: The name of the environment variable.
         Returns:
@@ -130,7 +149,7 @@ def _env_path(name: str) -> Path | None:
 
 
 def _path_from_env_or_default(env_name: str, default: Path) -> Path:
-    """Return path from env var, falling back to default.
+    """ Return path from env var, falling back to default.
         Args:
             env_name: The name of the environment variable.
             default: The default path to use if the environment variable is not set.
@@ -141,10 +160,11 @@ def _path_from_env_or_default(env_name: str, default: Path) -> Path:
 
 
 def create_user_context(app_name: str, app_author: str, app_dir: Path | str) -> BaseContext:
-    """Create a BaseContext for a normal user application.
+    """ Create a BaseContext for a normal user application.
         Args:
             app_name: The name of the application, used for directory paths.
             app_author: The author of the application, used for directory paths.
+            app_dir: The base directory of the application.
         Returns:
             A BaseContext object for the user application.
     """
@@ -185,10 +205,11 @@ def create_user_context(app_name: str, app_author: str, app_dir: Path | str) -> 
 
 
 def create_service_context(app_name: str, app_author: str, app_dir) -> BaseContext:
-    """Create a BaseContext for a Windows or Linux service.
+    """ Create a BaseContext for a Windows or Linux service.
         Args:
             app_name: The name of the application, used for directory paths.
             app_author: The author of the application, used for directory paths.
+            app_dir: The base directory of the application.
         Returns:
             A BaseContext object for the service application.
     """
@@ -244,67 +265,71 @@ def create_service_context(app_name: str, app_author: str, app_dir) -> BaseConte
 
 @dataclass(slots=True)
 class RuntimeContext:
-    """Convenient shared access to BaseContext information."""
+    """ Convenient shared access to BaseContext information.
+        Args:
+            ctx: The BaseContext object to wrap.
+    """
 
     ctx: BaseContext
 
     @property
     def app_name(self) -> str:
-        """Returns the name of the application."""
+        """ Returns the name of the application."""
         return self.ctx.app_name
 
     @property
     def app_author(self) -> str:
-        """Returns the author of the application."""
+        """ Returns the author of the application."""
         return self.ctx.app_author
 
     @property
     def locale(self) -> str:
-        """Returns the locale of the application."""
+        """ Returns the locale of the application."""
         return self.ctx.locale
 
     @property
     def app_dir(self) -> Path:
-        """Returns the application root directory path, ensuring it exists."""
+        """ Returns the application root directory path, ensuring it exists."""
         path = self.ctx.app_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def cache_dir(self) -> Path:
-        """Returns the cache directory path, ensuring it exists."""
+        """ Returns the cache directory path, ensuring it exists."""
         path = self.ctx.cache_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def config_dir(self) -> Path:
-        """Returns the configuration directory path, ensuring it exists."""
+        """ Returns the configuration directory path, ensuring it exists."""
         path = self.ctx.config_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def data_dir(self) -> Path:
-        """Returns the data directory path, ensuring it exists."""
+        """ Returns the data directory path, ensuring it exists."""
         path = self.ctx.data_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def state_dir(self) -> Path:
-        """Returns the state directory path, ensuring it exists."""
+        """ Returns the state directory path, ensuring it exists."""
         path = self.ctx.state_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def log_dir(self) -> Path:
-        """Returns the log directory path, ensuring it exists."""
+        """ Returns the log directory path, ensuring it exists."""
         path = self.ctx.log_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
+    @property
     def log_path(self) -> Path:
         """ Returns the path to a file in the log directory, ensuring the
             directory exists.
@@ -315,7 +340,7 @@ class RuntimeContext:
 
     @property
     def documents_dir(self) -> Path:
-        """Returns the documents directory path, ensuring it exists."""
+        """ Returns the documents directory path, ensuring it exists."""
         if self.ctx.documents_dir is None:
             msg = "This runtime context does not define a documents directory."
             raise RuntimeError(msg)
@@ -325,45 +350,66 @@ class RuntimeContext:
         return path
 
     def documents_path(self, file_path: str) -> Path:
-        """Returns the path to a file in the documents directory, ensuring the
+        """ Returns the path to a file in the documents directory, ensuring the
             directory exists.
+                Args:
+                    file_path: The relative path to the file within the documents directory.
+                Returns:
+                    A Path object representing the full path to the file in the documents directory.
+                Raises:
+                    RuntimeError: If this runtime context does not define a documents directory.
         
         """
         return self.documents_dir / file_path
 
+    @property
     def transcript_dir(self) -> Path:
-        """Returns the transcript directory path, ensuring it exists."""
+        """ Returns the transcript directory path, ensuring it exists."""
         path = self.data_dir / "transcripts"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     def transcript_path(self, video_id: str) -> Path:
-        """Returns the path to a transcript file for a given video ID, ensuring the
+        """ Returns the path to a transcript file for a given video ID, ensuring the
             directory exists.
+            Args:
+                video_id: The ID of the video for which to get the transcript path.
+            Returns:
+                A Path object representing the full path to the transcript file.
         """
         return self.transcript_dir() / f"{video_id}.json"
 
+    @property
     def vid_info_dir(self) -> Path:
-        """Returns the video info directory path, ensuring it exists."""
+        """ Returns the video info directory path, ensuring it exists."""
         path = self.cache_dir / "vid_info"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     def vid_info_path(self, video_id: str) -> Path:
-        """Returns the path to a video info file for a given video ID, ensuring the
+        """ Returns the path to a video info file for a given video ID, ensuring the
             directory exists.
+            Args:
+                video_id: The ID of the video for which to get the info path.
+            Returns:
+                A Path object representing the full path to the video info file.
         """
         return self.vid_info_dir() / f"{video_id}.json"
 
+    @property
     def audio_dir(self) -> Path:
-        """Returns the audio directory path, ensuring it exists."""
+        """ Returns the audio directory path, ensuring it exists."""
         path = self.cache_dir / "audio"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     def audio_path(self, audio_file: str) -> Path:
-        """Returns the path to an audio file for a given video ID, ensuring the
+        """ Returns the path to an audio file for a given video ID, ensuring the
             directory exists.
+            Args:
+                audio_file: The name of the audio file to get the path for.
+            Returns:
+                A Path object representing the full path to the audio file.
         """
         return self.audio_dir() / audio_file
 
@@ -374,7 +420,14 @@ class RuntimeContext:
         decimals: int = 2,
         as_int: bool = False,
     ) -> str:
-        """Formats a number according to the locale and specified options."""
+        """ Formats a number according to the locale and specified options.
+            Args:
+                value: The number to format.
+                decimals: The number of decimal places to include.
+                as_int: Whether to format the number as an integer.
+            Returns:
+                A string representing the formatted number.
+        """
         if value is None:
             return ""
 

@@ -3,14 +3,14 @@
 # src/lib/utils/log_utils.py
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, asdict, is_dataclass
+from dataclasses import dataclass
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import os
 import sys
 from typing import Any
+from yt_lib.utils.tree_view import TreeView, TreeViewConfig
 
 Logger = logging.Logger
 
@@ -42,15 +42,9 @@ class LogConfig:
     fmt: str = (
         "%(asctime)s %(levelname)s %(name)s"
         "%(context)s"
-        " %(message)s"
+        "%(message)s"
     )
     datefmt: str = "%H:%M:%S"
-
-    # Tree rendering defaults (used by log_tree)
-    tree_indent: int = 2
-    tree_max_depth: int = 10
-    tree_max_items: int = 50
-    tree_max_str: int = 220
 
 @dataclass(frozen=True, slots=True)
 class FileLogConfig:
@@ -61,7 +55,7 @@ class FileLogConfig:
     encoding: str = "utf-8"
     @property
     def log_file(self) -> Path:
-        """Returns the log file path, ensuring its parent directory exists."""
+        """ Returns the log file path, ensuring its parent directory exists."""
         path = self.log_file if isinstance(self.log_file, Path) else Path(self.log_file)
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
@@ -70,10 +64,10 @@ class FileLogConfig:
 class ContextAdapter(logging.LoggerAdapter):
     """ Inject context values into LogRecord.
 
-    Use get_logger(..., job_id=..., tool=...) so you don't have to pass `extra=`
-    in every log call.
+        Use get_logger(..., job_id=..., tool=...) so you don't have to pass `extra=`
+        in every log call.
 
-    The formatter can reference these with %(job_id)s, %(tool)s, etc.
+        The formatter can reference these with %(job_id)s, %(tool)s, etc.
     """
 
     def process(self, msg: str, kwargs: dict[str, Any]) -> tuple[str, dict[str, Any]]:
@@ -208,13 +202,9 @@ def log_tree(
     label: str,
     obj: object,
     *,
-    cfg: LogConfig | None = None,
-    indent: int | None = None,
-    max_depth: int | None = None,
-    max_items: int | None = None,
-    max_str: int | None = None,
-    collapse_keys: set[str] | None = None,
-    redact_keys: set[str] | None = None,
+    cfg: TreeViewConfig | None = None,
+    **kwargs,       # Optional extra kwargs to pass to TreeViewConfig, like collapse_keys
+                    # or redact_keys.
 ) -> None:
     """ Log nested structures in a stable, readable, indented format.
         Args:
@@ -222,16 +212,9 @@ def log_tree(
             level: The logging level.
             label: A label for the logged object.
             obj: The object to log.
-            cfg: Optional LogConfig to override defaults.
-            indent: Optional indentation level.
-            max_depth: Optional maximum depth to log.
-            max_items: Optional maximum number of items to log.
-            max_str: Optional maximum string length to log.
-            collapse_keys: Optional set of keys to collapse.
-            redact_keys: Optional set of keys to redact.
-
+            **kwargs: Additional keyword arguments passed to TreeView.render_tree().
     Typical usage:
-        log_tree(logger, logging.DEBUG, "playlist_info", payload, collapse_keys={"raw"})
+        log_tree(logger, logging.DEBUG, "playlist_info", payload, cfg=cfg)
 
     Notes:
       - If you're adding a big "raw" subtree, use collapse_keys={"raw"}.
@@ -240,270 +223,7 @@ def log_tree(
     if not logger.isEnabledFor(level):
         return
 
-    cfg = cfg or LogConfig()
-    rendered = format_tree(
-        obj,
-        indent=indent if indent is not None else cfg.tree_indent,
-        max_depth=max_depth if max_depth is not None else cfg.tree_max_depth,
-        max_items=max_items if max_items is not None else cfg.tree_max_items,
-        max_str=max_str if max_str is not None else cfg.tree_max_str,
-        collapse_keys=collapse_keys or {"raw"},
-        redact_keys=redact_keys or set(),
-    )
-    logger.log(level, "%s\n%s", label, rendered)
-
-
-def format_tree(
-    obj: object,
-    *,
-    indent: int = 2,
-    max_depth: int = 10,
-    max_items: int = 50,
-    max_str: int = 500,
-    sort_dict_keys: bool = False,
-    collapse_keys: set[str] | None = None,
-    redact_keys: set[str] | None = None,
-) -> str:
-    """ Return an indented tree view of nested dict/list structures.
-        Args:
-            obj: The object to format.
-            indent: The number of spaces to use for each indentation level.
-            max_depth: The maximum depth to traverse.
-            max_items: The maximum number of items to display per collection.
-            max_str: The maximum length of string representations.
-            sort_dict_keys: Whether to sort dictionary keys.
-            collapse_keys: Keys to collapse in the output.
-            redact_keys: Keys to redact in the output.
-
-        Includes one-line summaries for your known YT shapes by `kind`:
-          - "video"
-          - "playlist"
-          - "playlist#video"
-
-        Falls back to generic printing for unknown shapes (including raw blobs).
-    """
-    collapse_keys = collapse_keys or set()
-    redact_keys = redact_keys or set()
-
-    seen: set[int] = set()
-    lines: list[str] = []
-
-    def _short(v: object) -> str:
-        """ Return a short string representation of a value, with newlines escaped and truncated 
-            if necessary. 
-            Args:
-                v: The value to represent as a string.
-            Returns:
-                A short string representation of the value.
-        """
-        if isinstance(v, str):
-            s = v.replace("\n", "\\n")
-            return s if len(s) <= max_str else f"{s[: max_str - 1]} "
-        try:
-            r = repr(v)
-        except Exception as err:  # pylint: disable=broad-exception-caught
-            r = f"<repr failed: {type(err).__name__}: {err}>"
-        return r if len(r) <= max_str else f"{r[: max_str - 1]} "
-
-    def _is_seq(v: object) -> bool:
-        """ Return True if v is a sequence type (like list or tuple) but not a string/bytes. 
-            Args:
-                v: The value to check.
-            Returns:
-                True if v is a sequence type, False otherwise.
-        """
-        return isinstance(v, Sequence) and not isinstance(v, (str, bytes, bytearray))
-
-    def _collapsed_hint(v: object) -> str:
-        if isinstance(v, Mapping):
-            return f"<collapsed dict keys={len(v)}>"
-        if _is_seq(v):
-            return f"<collapsed list items={len(v)}>"
-        return "<collapsed>"
-
-    def _kind_summary(d: Mapping[object, object]) -> str | None:
-        """ Return a one-line summary for known YT shapes based on the 'kind' field.
-            Args:
-                d: The dictionary representing the YT shape.
-            Returns:
-                A one-line summary string if the kind is known, None otherwise.
-        """
-        kind = d.get("kind")
-
-        if kind == "video":
-            vid = d.get("video_id", "")
-            title = d.get("title", "")
-            pub = d.get("publishedAt", "")
-            stats = d.get("statistics")
-            views = stats.get("views", "") if isinstance(stats, Mapping) else ""
-            vpart = f" views={views}" if views != "" else ""
-            return f"video {vid!s}{vpart} title={_short(title)} publishedAt={_short(pub)}"
-
-        if kind == "playlist":
-            pid = d.get("playlist_id", "")
-            title = d.get("title", "")
-            pub = d.get("publishedAt", "")
-            cnt = d.get("itemCount", "")
-            return (
-                f"playlist {pid!s} itemCount={cnt!s} title={_short(title)}"
-                f" publishedAt={_short(pub)}"
-            )
-
-        if kind == "playlist#video":
-            pid = d.get("playlistId", "")
-            vid = d.get("videoId", "")
-            pos = d.get("position", "")
-            title = d.get("title", "")
-            pub = d.get("publishedAt", "")
-            return (
-                f"playlist#video playlistId={pid!s} videoId={vid!s} "
-                f"position={pos!s} title={_short(title)} publishedAt={_short(pub)}"
-            )
-
-        return None
-
-
-    def _coerce_to_walkable(v: object) -> object:
-        """ Coerce various object types to something we can walk (Mapping or Sequence).
-            Args:
-                v: The value to coerce.
-            Returns:
-                The coerced value, which is either a Mapping, a Sequence, or the original value if 
-                it cannot be coerced.
-        """
-        # Already walkable
-        if isinstance(v, Mapping):
-            return v
-        if isinstance(v, Sequence) and not isinstance(v, (str, bytes, bytearray)):
-            return v
-
-        # Pydantic v2 models
-        model_dump = getattr(v, "model_dump", None)
-        if callable(model_dump):
-            try:
-                return model_dump()
-            except Exception:       # pylint: disable=broad-exception-caught
-                pass
-
-        # Pydantic v1 models (or other .dict()-style)
-        as_dict = getattr(v, "dict", None)
-        if callable(as_dict):
-            try:
-                return as_dict()
-            except Exception:       # pylint: disable=broad-exception-caught
-                pass
-
-        # dataclasses
-        if is_dataclass(v):
-            try:
-                return asdict(v)
-            except Exception:       # pylint: disable=broad-exception-caught
-                pass
-
-        # namedtuple-ish
-        _asdict = getattr(v, "_asdict", None)
-        if callable(_asdict):
-            try:
-                return _asdict()
-            except Exception:       # pylint: disable=broad-exception-caught
-                pass
-
-        # plain objects with attributes (may fail for slots-only objects)
-        try:
-            return vars(v)
-        except TypeError:
-            return v
-
-
-    def _walk(v: object, prefix: str, depth: int) -> None:
-        """ Recursively walk the object and build lines for the tree representation.
-            Args:
-                v: The value to walk.
-                prefix: The prefix for each line.
-                depth: The current depth of the recursion.
-        """
-        v = _coerce_to_walkable(v)
-
-        if depth >= max_depth:
-            lines.append(f"{prefix}<max_depth {max_depth} reached>")
-            return
-
-        if isinstance(v, Mapping):
-            vid = id(v)
-            if vid in seen:
-                lines.append(f"{prefix}<cycle dict id={vid}>")
-                return
-            seen.add(vid)
-
-            header = _kind_summary(v)
-            if header is not None:
-                lines.append(f"{prefix}{header}")
-                child_prefix = prefix + " " * indent
-            else:
-                child_prefix = prefix
-
-            keys = list(v.keys())
-            if sort_dict_keys:
-                try:
-                    keys.sort()
-                except Exception:  # pylint: disable=broad-exception-caught
-                    pass
-
-            shown = 0
-            for k in keys:
-                if shown >= max_items:
-                    remaining = max(0, len(keys) - shown)
-                    lines.append(f"{child_prefix}  <{remaining} more keys>")
-                    break
-
-                key = str(k)
-
-                if key in redact_keys:
-                    lines.append(f"{child_prefix}{key}: <redacted>")
-                    shown += 1
-                    continue
-
-                val = v.get(k)
-
-                if key in collapse_keys and (isinstance(val, Mapping) or _is_seq(val)):
-                    lines.append(f"{child_prefix}{key}: {_collapsed_hint(val)}")
-                    shown += 1
-                    continue
-
-                if isinstance(val, Mapping) or _is_seq(val):
-                    lines.append(f"{child_prefix}{key}:")
-                    _walk(val, child_prefix + " " * indent, depth + 1)
-                else:
-                    lines.append(f"{child_prefix}{key}: {_short(val)}")
-                shown += 1
-            return
-
-        if _is_seq(v):
-            vid = id(v)
-            if vid in seen:
-                lines.append(f"{prefix}<cycle seq id={vid}>")
-                return
-            seen.add(vid)
-
-            n = len(v)
-            limit = min(n, max_items)
-            for i in range(limit):
-                item = v[i]
-                if isinstance(item, Mapping) or _is_seq(item):
-                    lines.append(f"{prefix}[{i}]:")
-                    _walk(item, prefix + " " * indent, depth + 1)
-                else:
-                    lines.append(f"{prefix}[{i}]: {_short(item)}")
-
-            if n > limit:
-                lines.append(f"{prefix}  <{n - limit} more items>")
-            return
-
-        lines.append(f"{prefix}{_short(v)}")
-
-    _walk(obj, "", 0)
-    return "\n".join(lines)
-
+    logger.log(level, "%s", TreeView().render_tree(obj=obj, title=label, cfg=cfg, **kwargs))
 
 # -----------------------------------------------------------------------------
 # Internals
@@ -563,8 +283,8 @@ def _normalize_name(name: str, *, root: str) -> str:
         Returns:
             A normalized logger name that starts with the root namespace.
     """
-    # Common case: name is __name__ like "src.lib.youtube.search"
-    # You may want to map "src.lib." away; keep it simple and predictable.
+    # Common case: name is __name__ like "src.module.youtube.search"
+    # You may want to map "src.module." away; keep it simple and predictable.
     if name == "__main__":
         base = root
     else:
