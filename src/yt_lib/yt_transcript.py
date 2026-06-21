@@ -29,9 +29,8 @@ import time
 from datetime import timedelta
 from contextlib import contextmanager
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
-# from urllib.parse import parse_qs, urlparse
 from youtube_transcript_api import (
     FetchedTranscript,
     NoTranscriptFound,
@@ -45,49 +44,51 @@ from yt_lib.yt_types import extract_video_id, Snippet
 
 logger = get_logger(__name__)
 
-class TranscriptPathProvider(Protocol):
-    """ Prototype to translate app_context methods into a simple protocol for this module,
-        to avoid a hard dependency on the full app context. 
-    """
+@dataclass(slots=True, frozen=True)
+class TranscriptPaths:
+    """ Provides methods to determine where to cache transcripts for a given video ID."""
+    transcript_dir: Path
+
     def transcript_path(self, video_id: str) -> Path:
-        """ Directory and file name to 'cache' transcripts for a given video ID.
+        """ Path for temporary storage of a specific transcript JSON file.
             Args:
-                video_id: The YouTube video ID for which to provide a transcript cache path.
+                video_id: The YouTube video ID.
             Returns:
-                A Path object representing the file path where the transcript for the given video
-                ID should be cached.
+                Path to the transcript JSON file.
         """
+        return self.transcript_dir / f"{video_id}.json"
 
 
-# Global context for cache path provider; must be set by MCP at runtime before use.
-_CONTEXT: TranscriptPathProvider | None = None
+
+# Global info for cache path provider; must be set by MCP at runtime before use.
+_INFO: TranscriptPaths | None = None
 
 
-def set_context(context: TranscriptPathProvider) -> None:
-    """ Set the global context for transcript cache path provision.
+def set_info(info: TranscriptPaths) -> None:
+    """ Set the global info for transcript cache path provision.
         Args:
-            context: An object implementing the `TranscriptPathProvider` protocol, which provides
+            info: An object implementing the `TranscriptPaths` dataclass, which provides
                     a method `transcript_path(video_id: str) -> Path` to determine where to cache
                     transcripts for a given video ID.
     """
-    global _CONTEXT             #pylint: disable=global-statement
-    _CONTEXT = context
+    global _INFO             #pylint: disable=global-statement
+    _INFO = info
 
 
-def _get_transcript_cache_path(video_id: str) -> Path:
-    """ Get the cache path for a given video ID using the global context.
+def _get_transcript_path(video_id: str) -> Path:
+    """ Get the cache path for a given video ID using the global info.
         Args:
             video_id: The YouTube video ID.
         Returns:
             File path to the cached transcript JSON for the video.
         Raises:
-            RuntimeError: If the global context has not been set.
+            RuntimeError: If the global info has not been set.
     """
-    if _CONTEXT is None:
-        msg = "yt_transcript runtime context has not been initialized."
+    if _INFO is None:
+        msg = "yt_transcript runtime info has not been initialized."
         raise RuntimeError(msg)
 
-    return _CONTEXT.transcript_path(video_id)
+    return _INFO.transcript_path(video_id)
 
 # A small, process-wide throttle to avoid overwhelming upstream services when a
 # workflow engine fans out work in parallel.
@@ -232,12 +233,12 @@ def transcript_to_list_and_cache(
 
 
 def fetch_transcript(
-    url_or_id: str,
+    url: str,
     prefer_langs: Sequence[str] | None = None,
 ) -> list[Snippet] | None:
     """ Fetch a transcript for a YouTube video and return raw snippet dicts.
         Args:
-            url_or_id: YouTube URL or video id.
+            url: YouTube URL or video id.
             prefer_langs: Preferred language codes (descending priority). If None,
                 defaults to :data:`PREFERRED_LANGS`.
         Returns:
@@ -248,8 +249,8 @@ def fetch_transcript(
     """
 
     langs = list(prefer_langs) if prefer_langs is not None else list(PREFERRED_LANGS)
-    video_id = extract_video_id(url_or_id)
-    cache_path = _get_transcript_cache_path(video_id)
+    video_id = extract_video_id(url)
+    cache_path = _get_transcript_path(video_id)
     lock_path = cache_path.with_suffix(cache_path.suffix + ".lock")
 
     # A per-video lock prevents cache corruption and redundant upstream calls
@@ -336,7 +337,7 @@ def fetch_transcript(
 
 
 def yt_json(
-    url_or_id: str,
+    url: str,
     prefer_langs: Sequence[str] | None = None,
 ) -> list[Snippet] | None:
     """ Return the raw transcript snippets (typed), or None.
@@ -344,12 +345,12 @@ def yt_json(
         It returns the same data that `fetch_transcript()` produces (a list of
         Snippet dicts), without JSON serialization.
         Args:
-            url_or_id: YouTube URL or video id.
+            url: YouTube URL or video id.
             prefer_langs: Preferred language codes (descending priority).
         Returns:
             A JSON string or None.
     """
-    return fetch_transcript(url_or_id, prefer_langs)
+    return fetch_transcript(url, prefer_langs)
 
 # ---------------------------------------------------------------------------
 # Test / CLI entry point (not a formal unit test, just a quick way to run and see results)q

@@ -144,11 +144,13 @@ class TreeView:
                 A string containing an indented tree view of the object.
         """
         active_cfg = cfg.deep_copy() if cfg is not None else self.cfg.deep_copy()
+
         if kwargs:
             for key, value in kwargs.items():
                 if not hasattr(active_cfg, key):
                     raise AttributeError(f"Unknown TreeViewConfig option: {key}")
                 setattr(active_cfg, key, value)
+
         active: set[int] = set()
         lines: list[str] = []
 
@@ -165,12 +167,12 @@ class TreeView:
             """
             if isinstance(v, str):
                 s = v.replace("\n", "\\n")
-                return s if len(s) <= cfg.max_str else f"{s[: cfg.max_str - 1]} ..."
+                return s if len(s) <= active_cfg.max_str else f"{s[: active_cfg.max_str - 1]} ..."
             try:
                 r = repr(v)
             except Exception as exc:  # pylint: disable=broad-exception-caught
                 r = f"<repr failed: {type(exc).__name__}: {exc}>"
-            return r if len(r) <= cfg.max_str else f"{r[: cfg.max_str - 1]} ..."
+            return r if len(r) <= active_cfg.max_str else f"{r[: active_cfg.max_str - 1]} ..."
 
         def _is_seq(v: object) -> bool:
             """ Return True if v is a sequence type (like list or tuple) but not a string/bytes. 
@@ -256,8 +258,8 @@ class TreeView:
             """
             v = _coerce_to_walkable(v)
 
-            if depth >= cfg.max_depth:
-                lines.append(f"{prefix}<max_depth {cfg.max_depth} reached>")
+            if depth >= active_cfg.max_depth:
+                lines.append(f"{prefix}<max_depth {active_cfg.max_depth} reached>")
                 return
 
             if isinstance(v, Mapping):
@@ -270,7 +272,7 @@ class TreeView:
                     child_prefix = prefix
 
                     keys = list(v.keys())
-                    if cfg.sort_dict_keys:
+                    if active_cfg.sort_dict_keys:
                         try:
                             keys.sort()
                         except Exception:  # pylint: disable=broad-exception-caught
@@ -278,28 +280,29 @@ class TreeView:
 
                     shown = 0
                     for k in keys:
-                        if shown >= cfg.max_items:
+                        if shown >= active_cfg.max_items:
                             remaining = max(0, len(keys) - shown)
                             lines.append(f"{child_prefix}  <{remaining} more keys>")
                             break
 
                         key = str(k)
 
-                        if key in cfg.redact_keys:
+                        if key in active_cfg.redact_keys:
                             lines.append(f"{child_prefix}{key}: <redacted>")
                             shown += 1
                             continue
 
                         val = v[k]
 
-                        if key in cfg.collapse_keys and (isinstance(val, Mapping) or _is_seq(val)):
+                        if key in active_cfg.collapse_keys and (isinstance(val, Mapping) or
+                                                                _is_seq(val)):
                             lines.append(f"{child_prefix}{key}: {_collapsed_hint(val)}")
                             shown += 1
                             continue
 
                         if isinstance(val, Mapping) or _is_seq(val):
                             lines.append(f"{child_prefix}{key}:")
-                            _walk(val, child_prefix + " " * cfg.indent, depth + 1)
+                            _walk(val, child_prefix + " " * active_cfg.indent, depth + 1)
                         else:
                             lines.append(f"{child_prefix}{key}: {_short(val)}")
                         shown += 1
@@ -315,12 +318,12 @@ class TreeView:
                 active.add(container_id)
                 try:
                     n = len(v)
-                    limit = min(n, cfg.max_items)
+                    limit = min(n, active_cfg.max_items)
                     for i in range(limit):
                         item = v[i]
                         if isinstance(item, Mapping) or _is_seq(item):
                             lines.append(f"{prefix}[{i}]:")
-                            _walk(item, prefix + " " * cfg.indent, depth + 1)
+                            _walk(item, prefix + " " * active_cfg.indent, depth + 1)
                         else:
                             lines.append(f"{prefix}[{i}]: {_short(item)}")
 

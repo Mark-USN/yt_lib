@@ -68,7 +68,8 @@ def read_field(obj: Any, name: str) -> Any:
 def prompt_result_messages_to_llm(messages: str | Iterable[Any]) -> list[LlmMessage]:
     """ Normalize FastMCP ``PromptResult.messages`` to ``list[LlmMessage]``.
         Args:
-            messages: The messages to normalize, which may be a string or an iterable of message-like objects
+            messages: The messages to normalize, which may be a string or an iterable of 
+                      message-like objects
         Returns:
             A list of ``LlmMessage`` objects
 

@@ -8,9 +8,9 @@ import asyncio
 import concurrent.futures
 import threading
 import whisper
-from yt_lib.yt_types import ProgressReporter, IntegerProgressAllocator
+from yt_lib.yt_types import Snippet, ProgressReporter, IntegerProgressAllocator
 from yt_lib.utils.log_utils import get_logger
-from yt_lib.audio.audio_types import AUDIO_SETTINGS # , AudioTranscriptChunk
+from yt_lib.audio.audio_types import AUDIO_SETTINGS
 
 logger = get_logger(__name__)
 
@@ -34,27 +34,27 @@ def _get_thread_local_whisper_model(model_name: str) -> whisper.model.Whisper:
         _WHISPER_THREAD_LOCAL.model_name = model_name
     return _WHISPER_THREAD_LOCAL.model
 
-def _transcribe_chunk_in_worker_thread(model_name: str, segment_audio) -> dict:
+def _transcribe_chunk_in_worker_thread(model_name: str, audio_segment) -> dict:
     """ Runs inside the dedicated worker thread.
         Args:
             model_name: Name of the Whisper model to use.
-            segment_audio: Audio segment to transcribe.
+            audio_segment: Audio segment to transcribe.
         Returns:
             The transcription result as a dictionary.
     """
     model = _get_thread_local_whisper_model(model_name)
-    return whisper.transcribe(model, segment_audio)
+    return whisper.transcribe(model, audio_segment)
 
 
 async def transcribe_wav_in_chunks(
     audio_path: Path,
-    model_name: str = AUDIO_SETTINGS.whisper_model,
-    chunk_duration: float = AUDIO_SETTINGS.chunk_duration_seconds,
-    overlap: float = AUDIO_SETTINGS.chunk_overlap_seconds,
+    model_name: str | None = None,
+    chunk_duration: float | None = None,
+    overlap: float | None = None,
     *,
     yield_every_n_chunks: int = 1,
     progress_rptr: ProgressReporter | None = None,
-) -> list[dict] | None:
+) -> list[Snippet] | None:
     """ Async/transcribable variant of `transcribe_with_whisper`.
         This function yields control back to the event loop between chunks so the job
         can be cancelled by the caller.
@@ -66,8 +66,18 @@ async def transcribe_wav_in_chunks(
             yield_every_n_chunks: Yield to loop every N chunks (default: 1).
             progress_rptr: Optional progress reporter callback.
         Returns:
-            List of Whisper chunk dicts, or None if transcription fails.
+            List of Snippets, or None if transcription fails.
     """
+
+
+    model_name = model_name or AUDIO_SETTINGS.whisper_model
+    chunk_duration = (
+        AUDIO_SETTINGS.chunk_duration_seconds
+        if chunk_duration is None
+        else chunk_duration
+    )
+    overlap = AUDIO_SETTINGS.chunk_overlap_seconds if overlap is None else overlap
+
     logger.info(
         "(async) Transcribing %s with Whisper model '%s' in %.1fs chunks (overlap %.1fs)",
         audio_path,
@@ -112,8 +122,7 @@ async def transcribe_wav_in_chunks(
     if stride <= 0:
         stride = samples_per_chunk
 
-    chunks: list[dict] = []
-    chunk_index = 0
+    snippets: list[Snippet] = []
 
     if progress_rptr:
         await progress_rptr.set_message("Whisper transcription in progress")
@@ -134,25 +143,27 @@ async def transcribe_wav_in_chunks(
                                                    thread_name_prefix="whisper") as ex:
             for start_sample in range(0, num_samples, stride):
                 # Checkpoint: if the caller cancelled, this is where CancelledError lands.
-                if yield_every_n_chunks > 0 and (chunk_index % yield_every_n_chunks) == 0:
-                    await asyncio.sleep(0)
-                    if progress_rptr and progress_allocater:
-                        delta = progress_allocater.delta_for_completed_steps(chunk_index + 1)
+                if yield_every_n_chunks > 0:
+                    chunk_index = start_sample // stride
+                    if chunk_index % yield_every_n_chunks == 0:
+                        await asyncio.sleep(0)
+                        if progress_rptr and progress_allocater:
+                            delta = progress_allocater.delta_for_completed_steps(chunk_index + 1)
 
-                        if delta > 0:
-                            await progress_rptr.set_message(
-                                    f"Transcribing chunk {chunk_index} of {num_chunks}"
-                                )
-                            await progress_rptr.increment(delta)
+                            if delta > 0:
+                                await progress_rptr.set_message(
+                                        f"Transcribing chunk {chunk_index} of {num_chunks}"
+                                    )
+                                await progress_rptr.increment(delta)
 
                 end_sample = min(start_sample + samples_per_chunk, num_samples)
-                segment_audio = audio[start_sample:end_sample]
+                audio_segment = audio[start_sample:end_sample]
 
-                if segment_audio.size == 0:
+                if audio_segment.size == 0:
                     break
 
                 start_time = start_sample / sample_rate
-                end_time = min(num_samples, end_sample) / sample_rate
+                duration = (min(end_sample, num_samples) / sample_rate) - start_time
 
                 logger.debug(
                     "(async) Chunk %d: samples [%d:%d] -> time [%.2f, %.2f]s",
@@ -160,21 +171,25 @@ async def transcribe_wav_in_chunks(
                     start_sample,
                     end_sample,
                     start_time,
-                    end_time,
+                    duration,
                 )
 
                 try:
                     chunk = await loop.run_in_executor(
-                        ex, _transcribe_chunk_in_worker_thread, model_name, segment_audio
+                        ex, _transcribe_chunk_in_worker_thread, model_name, audio_segment
                     )
                 except asyncio.CancelledError:
                     # Best effort cleanup; note: a chunk already running in the worker
                     # thread will still run to completion, but we stop awaiting more work.
                     logger.info("Transcription cancelled during chunk %d.", chunk_index)
                     raise
-
-                chunks.append(chunk)
-                chunk_index += 1
+                if text := chunk.get("text", "").strip():
+                    snippet: Snippet = {
+                        "text": text,
+                        "start": start_time,
+                        "duration": duration,
+                    }
+                    snippets.append(snippet)
 
                 if end_sample >= num_samples:
                     if progress_rptr and progress_allocater:
@@ -183,6 +198,6 @@ async def transcribe_wav_in_chunks(
                         if delta > 0:
                             await progress_rptr.increment(delta)
                     break
-        return chunks
+        return snippets
     finally:
         audio_path.unlink(missing_ok=True)

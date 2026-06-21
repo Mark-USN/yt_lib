@@ -1,7 +1,7 @@
 """
-app_context.py
+app_info.py
 
-Runtime context helpers for application and service paths.
+Runtime info helpers for application and service paths.
 
 User applications use platformdirs user directories.
 
@@ -51,8 +51,8 @@ def _round_half_up(value: float | Decimal) -> int:
 
 
 @dataclass(slots=True, frozen=True)
-class BaseContext:
-    """ Resolved runtime context for application paths and locale.
+class Baseinfo:
+    """ Resolved runtime info for application paths and locale.
         Args:
             app_name: The name of the application.
             app_author: The author of the application.
@@ -159,20 +159,20 @@ def _path_from_env_or_default(env_name: str, default: Path) -> Path:
     return _env_path(env_name) or default
 
 
-def create_user_context(app_name: str, app_author: str, app_dir: Path | str) -> BaseContext:
-    """ Create a BaseContext for a normal user application.
+def create_user_info(app_name: str, app_author: str, app_dir: Path | str) -> Baseinfo:
+    """ Create a Baseinfo for a normal user application.
         Args:
             app_name: The name of the application, used for directory paths.
             app_author: The author of the application, used for directory paths.
             app_dir: The base directory of the application.
         Returns:
-            A BaseContext object for the user application.
+            A Baseinfo object for the user application.
     """
     dirs = PlatformDirs(appname=app_name, appauthor=app_author)
 
     env_prefix = app_name.upper().replace("-", "_")
 
-    return BaseContext(
+    return Baseinfo(
         app_name=app_name,
         app_author=app_author,
         app_dir=Path(app_dir).resolve(),
@@ -204,14 +204,14 @@ def create_user_context(app_name: str, app_author: str, app_dir: Path | str) -> 
     )
 
 
-def create_service_context(app_name: str, app_author: str, app_dir) -> BaseContext:
-    """ Create a BaseContext for a Windows or Linux service.
+def create_service_info(app_name: str, app_author: str, app_dir) -> Baseinfo:
+    """ Create a Baseinfo for a Windows or Linux service.
         Args:
             app_name: The name of the application, used for directory paths.
             app_author: The author of the application, used for directory paths.
             app_dir: The base directory of the application.
         Returns:
-            A BaseContext object for the service application.
+            A Baseinfo object for the service application.
     """
     env_prefix = app_name.upper().replace("-", "_")
 
@@ -221,7 +221,7 @@ def create_service_context(app_name: str, app_author: str, app_dir) -> BaseConte
             Path(os.environ.get("PROGRAMDATA", r"C:\ProgramData")) / app_name,
         )
 
-        return BaseContext(
+        return Baseinfo(
             app_name=app_name,
             app_author=app_author,
             app_dir=Path(app_dir).resolve(),
@@ -234,7 +234,7 @@ def create_service_context(app_name: str, app_author: str, app_dir) -> BaseConte
             documents_dir=None,
         )
 
-    return BaseContext(
+    return Baseinfo(
         app_name=app_name,
         app_author=app_author,
         app_dir=Path(app_dir).resolve(),
@@ -264,68 +264,68 @@ def create_service_context(app_name: str, app_author: str, app_dir) -> BaseConte
 
 
 @dataclass(slots=True)
-class RuntimeContext:
-    """ Convenient shared access to BaseContext information.
+class RuntimeInfo:
+    """ Convenient shared access to Baseinfo information.
         Args:
-            ctx: The BaseContext object to wrap.
+            info: The Baseinfo object to wrap.
     """
 
-    ctx: BaseContext
+    info: Baseinfo
 
     @property
     def app_name(self) -> str:
         """ Returns the name of the application."""
-        return self.ctx.app_name
+        return self.info.app_name
 
     @property
     def app_author(self) -> str:
         """ Returns the author of the application."""
-        return self.ctx.app_author
+        return self.info.app_author
 
     @property
     def locale(self) -> str:
         """ Returns the locale of the application."""
-        return self.ctx.locale
+        return self.info.locale
 
     @property
     def app_dir(self) -> Path:
         """ Returns the application root directory path, ensuring it exists."""
-        path = self.ctx.app_dir
+        path = self.info.app_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def cache_dir(self) -> Path:
         """ Returns the cache directory path, ensuring it exists."""
-        path = self.ctx.cache_dir
+        path = self.info.cache_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def config_dir(self) -> Path:
         """ Returns the configuration directory path, ensuring it exists."""
-        path = self.ctx.config_dir
+        path = self.info.config_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def data_dir(self) -> Path:
         """ Returns the data directory path, ensuring it exists."""
-        path = self.ctx.data_dir
+        path = self.info.data_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def state_dir(self) -> Path:
         """ Returns the state directory path, ensuring it exists."""
-        path = self.ctx.state_dir
+        path = self.info.state_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def log_dir(self) -> Path:
         """ Returns the log directory path, ensuring it exists."""
-        path = self.ctx.log_dir
+        path = self.info.log_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -341,11 +341,11 @@ class RuntimeContext:
     @property
     def documents_dir(self) -> Path:
         """ Returns the documents directory path, ensuring it exists."""
-        if self.ctx.documents_dir is None:
-            msg = "This runtime context does not define a documents directory."
+        if self.info.documents_dir is None:
+            msg = "This runtime info does not define a documents directory."
             raise RuntimeError(msg)
 
-        path = self.ctx.documents_dir
+        path = self.info.documents_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -357,7 +357,7 @@ class RuntimeContext:
                 Returns:
                     A Path object representing the full path to the file in the documents directory.
                 Raises:
-                    RuntimeError: If this runtime context does not define a documents directory.
+                    RuntimeError: If this runtime info does not define a documents directory.
         
         """
         return self.documents_dir / file_path
@@ -377,7 +377,7 @@ class RuntimeContext:
             Returns:
                 A Path object representing the full path to the transcript file.
         """
-        return self.transcript_dir() / f"{video_id}.json"
+        return self.transcript_dir / f"{video_id}.json"
 
     @property
     def vid_info_dir(self) -> Path:
@@ -394,7 +394,7 @@ class RuntimeContext:
             Returns:
                 A Path object representing the full path to the video info file.
         """
-        return self.vid_info_dir() / f"{video_id}.json"
+        return self.vid_info_dir / f"{video_id}.json"
 
     @property
     def audio_dir(self) -> Path:
@@ -411,7 +411,7 @@ class RuntimeContext:
             Returns:
                 A Path object representing the full path to the audio file.
         """
-        return self.audio_dir() / audio_file
+        return self.audio_dir / audio_file
 
     def format_number(
         self,
