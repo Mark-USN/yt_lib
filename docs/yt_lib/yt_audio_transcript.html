@@ -34,25 +34,31 @@
                     <a class="variable" href="#logger">logger</a>
             </li>
             <li>
-                    <a class="class" href="#PathProvider">PathProvider</a>
+                    <a class="class" href="#AudioPaths">AudioPaths</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="function" href="#PathProvider.__init__">PathProvider</a>
+                                <a class="function" href="#AudioPaths.__init__">AudioPaths</a>
                         </li>
                         <li>
-                                <a class="function" href="#PathProvider.transcript_path">transcript_path</a>
+                                <a class="variable" href="#AudioPaths.audio_dir">audio_dir</a>
                         </li>
                         <li>
-                                <a class="function" href="#PathProvider.audio_dir">audio_dir</a>
+                                <a class="function" href="#AudioPaths.audio_source_dir">audio_source_dir</a>
                         </li>
                         <li>
-                                <a class="function" href="#PathProvider.audio_path">audio_path</a>
+                                <a class="function" href="#AudioPaths.audio_source_path">audio_source_path</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AudioPaths.audio_converted_dir">audio_converted_dir</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AudioPaths.audio_converted_path">audio_converted_path</a>
                         </li>
                 </ul>
 
             </li>
             <li>
-                    <a class="function" href="#set_context">set_context</a>
+                    <a class="function" href="#set_info">set_info</a>
             </li>
             <li>
                     <a class="function" href="#transcribe_youtube_audio_async">transcribe_youtube_audio_async</a>
@@ -87,13 +93,13 @@ convert it to a suitable format, and Whisper to perform the transcription.</p>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protocol</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.audio.ffmpeg_audio</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_to_16k_mono_wav</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.audio.audio_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioTranscript</span><span class="p">,</span> <span class="n">AUDIO_SETTINGS</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.audio.audio_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">AUDIO_SETTINGS</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.audio.whisper_audio</span><span class="w"> </span><span class="kn">import</span> <span class="n">transcribe_wav_in_chunks</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.audio.ytdlp_audio</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_audio_source</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.yt_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProgressReporter</span> <span class="c1"># ,Snippet</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.yt_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProgressReporter</span><span class="p">,</span> <span class="n">Snippet</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">yt_lib.utils.log_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
@@ -102,142 +108,150 @@ convert it to a suitable format, and Whisper to perform the transcription.</p>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="c1"># -----------------------------</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="k">class</span><span class="w"> </span><span class="nc">PathProvider</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Prototype to translate app_context methods into a simple protocol for this module,</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">        to avoid a hard dependency on the full app context. </span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">transcript_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory and file name to &#39;cache&#39; transcripts for a given video ID.</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">            Args:</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">                video_id: The YouTube video ID for which to provide a transcript cache path.</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">            Returns:</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">                A Path object representing the file path where the transcript for the given video</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">                ID should be cached.</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory to temperary store audio files for a given video ID.</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">            Returns:</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">                A Path object representing the directory where audio files for the given video</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">                ID should be stored.</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory and file name to temperarily store audio files for a given video ID.</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">            Args:</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd">                audio_file: The name of the audio file.</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="sd">            Returns:</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">                A Path object representing the file path where the audio file for a video</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">                ID should be stored.</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="c1"># Global context for cache path provider; must be set by MCP at runtime before use.</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="n">_CONTEXT</span><span class="p">:</span> <span class="n">PathProvider</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="k">class</span><span class="w"> </span><span class="nc">AudioPaths</span><span class="p">:</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Provides methods to determine where to cache audio files for a given video ID.&quot;&quot;&quot;</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>    <span class="n">audio_dir</span><span class="p">:</span> <span class="n">Path</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_source_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory for temporary storage of yt_dlp audio cache.</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">        Returns:</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">            Path to the audio cache directory.</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>        <span class="n">pth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_dir</span> <span class="o">/</span> <span class="s2">&quot;source&quot;</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>        <span class="n">pth</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>        <span class="k">return</span> <span class="n">pth</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_source_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Path for temporary storage of a specific yt_dlp audio file.</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">            Args:</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">                audio_file: The name of the audio file.</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="sd">            Returns:</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">                Path to the audio file.</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_source_dir</span><span class="p">()</span> <span class="o">/</span> <span class="n">audio_file</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_converted_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory for temporary storage of converted audio files.</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">            Returns:</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">                Path to the converted audio cache directory.</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>        <span class="n">pth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_dir</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>        <span class="n">pth</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>        <span class="k">return</span> <span class="n">pth</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="k">def</span><span class="w"> </span><span class="nf">set_context</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">PathProvider</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Set the global context for transcript cache path provision.</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">        Args:</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">            context: An object implementing the `TranscriptPathProvider` protocol, which provides</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">                    a method `transcript_path(video_id: str) -&gt; Path` to determine where to cache</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">                    transcripts for a given video ID.</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="k">global</span> <span class="n">_CONTEXT</span>             <span class="c1">#pylint: disable=global-statement</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">context</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_converted_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Path for temporary storage of a specific converted audio file.</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">            Args:</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">                audio_file: The name of the converted audio file.</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">            Returns:</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">                Path to the converted audio file.</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_converted_dir</span><span class="p">()</span> <span class="o">/</span> <span class="n">audio_file</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_get_transcript_cache_path</span><span class="p">(</span><span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Get the cache path for a given video ID using the global context.</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">        Args:</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">            video_id: The YouTube video ID.</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">        Returns:</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">            File path to the cached transcript JSON for the video.</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="sd">        Raises:</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">            RuntimeError: If the global context has not been set.</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="c1"># Global info for cache path provider; must be set by MCP at runtime before use.</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="n">_INFO</span><span class="p">:</span> <span class="n">AudioPaths</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="k">def</span><span class="w"> </span><span class="nf">set_info</span><span class="p">(</span><span class="n">info</span><span class="p">:</span> <span class="n">AudioPaths</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Set the global info for transcript cache path provision.</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">        Args:</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="sd">            info: An object implementing the `AudioPaths` protocol, which provides</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">                    methods to determine where to cache audio files for a given video ID.</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="k">if</span> <span class="n">_CONTEXT</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;yt_transcript runtime context has not been initialized.&quot;</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="k">global</span> <span class="n">_INFO</span>             <span class="c1">#pylint: disable=global-statement</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="n">_INFO</span> <span class="o">=</span> <span class="n">info</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="k">return</span> <span class="n">_CONTEXT</span><span class="o">.</span><span class="n">transcript_path</span><span class="p">(</span><span class="n">video_id</span><span class="p">)</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_get_audio_dir</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Folder for temporary storage of yt_dlp audio cache.</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">        We delete these if they are over a day old in the code below.</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">        Returns:</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">            Path to the audio cache directory.</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="k">if</span> <span class="n">_CONTEXT</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;yt_transcript runtime context has not been initialized.&quot;</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="k">return</span> <span class="n">_CONTEXT</span><span class="o">.</span><span class="n">audio_dir</span><span class="p">()</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">transcribe_youtube_audio_async</span><span class="p">(</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="o">*</span><span class="p">,</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">whisper_model</span><span class="p">,</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="n">chunk_duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">chunk_duration_seconds</span><span class="p">,</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="n">overlap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">chunk_overlap_seconds</span><span class="p">,</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">progress_rptr</span><span class="p">:</span> <span class="n">ProgressReporter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="n">keep_files</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioTranscript</span><span class="p">:</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Transcribe the audio from a YouTube video given its URL, using yt_dlp to download the audio,</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">        convert it to WAV, and then transcribe it using Whisper.</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">        Args:</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="sd">            url: The URL of the YouTube video.</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">            model_name: The Whisper model name to use.</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">            chunk_duration_s: Duration of each audio chunk in seconds.</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">            overlap_s: Overlap between audio chunks in seconds.</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="sd">            progress_rptr: Optional progress reporter callback.</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">            keep_files: Whether to keep the downloaded and converted audio files.</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">        Returns:</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">            An AudioTranscript object containing the video ID, title, and transcription snippets.</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>    <span class="n">source_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">_get_audio_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;source_audio&quot;</span><span class="p">)</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="n">wav_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">_get_audio_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;wav&quot;</span><span class="p">)</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_total</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Starting transcription process.&quot;</span><span class="p">)</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Downloading audio&quot;</span><span class="p">)</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="n">source</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">download_audio_source</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">source_dir</span><span class="p">)</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Converting audio to 16 kHz mono WAV&quot;</span><span class="p">)</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="n">converted</span> <span class="o">=</span> <span class="k">await</span> <span class="n">convert_to_16k_mono_wav</span><span class="p">(</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>        <span class="n">source</span><span class="o">.</span><span class="n">source_path</span><span class="p">,</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>        <span class="n">wav_dir</span><span class="p">,</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>        <span class="n">output_stem</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">video_id</span><span class="p">,</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="p">)</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Running Whisper transcription&quot;</span><span class="p">)</span>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="n">snippets</span> <span class="o">=</span> <span class="k">await</span> <span class="n">transcribe_wav_in_chunks</span><span class="p">(</span>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>        <span class="n">converted</span><span class="o">.</span><span class="n">wav_path</span><span class="p">,</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>        <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="n">chunk_duration</span><span class="o">=</span><span class="n">chunk_duration_s</span><span class="p">,</span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>        <span class="n">overlap</span><span class="o">=</span><span class="n">overlap_s</span><span class="p">,</span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="n">progress_rptr</span><span class="o">=</span><span class="n">progress_rptr</span><span class="p">,</span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="p">)</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="c1"># text = &quot;\n&quot;.join(chunk.text for chunk in chunks if chunk.text)</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>
-</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Transcription complete&quot;</span><span class="p">)</span>
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">keep_files</span><span class="p">:</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>        <span class="n">source</span><span class="o">.</span><span class="n">source_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>        <span class="n">converted</span><span class="o">.</span><span class="n">wav_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>    <span class="k">return</span> <span class="n">AudioTranscript</span><span class="p">(</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>        <span class="n">video_id</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">video_id</span><span class="p">,</span>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>        <span class="n">title</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>        <span class="n">snippets</span><span class="o">=</span><span class="n">snippets</span><span class="p">,</span>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>    <span class="p">)</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_get_audio_source_dir</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Folder for temporary storage of yt_dlp audio cache.</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">        We delete these if they are over a day old in the code below.</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">        Returns:</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">            Path to the audio cache directory.</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="k">if</span> <span class="n">_INFO</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;yt_transcript runtime info has not been initialized.&quot;</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="k">return</span> <span class="n">_INFO</span><span class="o">.</span><span class="n">audio_source_dir</span><span class="p">()</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_get_audio_converted_dir</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Folder for temporary storage of yt_dlp audio cache.</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="sd">        We delete these if they are over a day old in the code below.</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="sd">        Returns:</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">            Path to the audio cache directory.</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">if</span> <span class="n">_INFO</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;yt_transcript runtime info has not been initialized.&quot;</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">return</span> <span class="n">_INFO</span><span class="o">.</span><span class="n">audio_converted_dir</span><span class="p">()</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">transcribe_youtube_audio_async</span><span class="p">(</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">whisper_model</span><span class="p">,</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>    <span class="n">chunk_duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">chunk_duration_seconds</span><span class="p">,</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="n">overlap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">chunk_overlap_seconds</span><span class="p">,</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="n">progress_rptr</span><span class="p">:</span> <span class="n">ProgressReporter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="n">keep_files</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Snippet</span><span class="p">]:</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Transcribe the audio from a YouTube video given its URL, using yt_dlp to download the audio,</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">        convert it to WAV, and then transcribe it using Whisper.</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">        Args:</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="sd">            url: The URL of the YouTube video.</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="sd">            model_name: The Whisper model name to use.</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="sd">            chunk_duration_s: Duration of each audio chunk in seconds.</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">            overlap_s: Overlap between audio chunks in seconds.</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">            progress_rptr: Optional progress reporter callback.</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">            keep_files: Whether to keep the downloaded and converted audio files.</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">        Returns:</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">            A list of Snippet objects containing the transcription snippets.</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="n">source_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">_get_audio_source_dir</span><span class="p">()</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="n">wav_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">_get_audio_converted_dir</span><span class="p">()</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_total</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Starting transcription process.&quot;</span><span class="p">)</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloading audio to </span><span class="si">{</span><span class="n">source_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="n">source</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">download_audio_source</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">source_dir</span><span class="p">)</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Audio download complete: </span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Converting audio to 16 kHz mono WAV&quot;</span><span class="p">)</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>    <span class="n">converted</span> <span class="o">=</span> <span class="k">await</span> <span class="n">convert_to_16k_mono_wav</span><span class="p">(</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>        <span class="n">source</span><span class="o">.</span><span class="n">source_path</span><span class="p">,</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="n">wav_dir</span><span class="p">,</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>        <span class="n">output_stem</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">video_id</span><span class="p">,</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="p">)</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Audio conversion complete: </span><span class="si">{</span><span class="n">converted</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Running Whisper transcription&quot;</span><span class="p">)</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="n">snippets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Snippet</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">transcribe_wav_in_chunks</span><span class="p">(</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>        <span class="n">converted</span><span class="o">.</span><span class="n">wav_path</span><span class="p">,</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>        <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>        <span class="n">chunk_duration</span><span class="o">=</span><span class="n">chunk_duration_s</span><span class="p">,</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>        <span class="n">overlap</span><span class="o">=</span><span class="n">overlap_s</span><span class="p">,</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>        <span class="n">progress_rptr</span><span class="o">=</span><span class="n">progress_rptr</span><span class="p">,</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="p">)</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>    <span class="c1"># text = &quot;\n&quot;.join(chunk.text for chunk in chunks if chunk.text)</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Transcription complete&quot;</span><span class="p">)</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">keep_files</span><span class="p">:</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>        <span class="n">source</span><span class="o">.</span><span class="n">source_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>        <span class="n">converted</span><span class="o">.</span><span class="n">wav_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>    <span class="k">return</span> <span class="n">snippets</span>
 </span></pre></div>
 
 
@@ -254,218 +268,235 @@ convert it to a suitable format, and Whisper to perform the transcription.</p>
     
 
                 </section>
-                <section id="PathProvider">
-                            <input id="PathProvider-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                <section id="AudioPaths">
+                            <input id="AudioPaths-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr class">
-            
-    <span class="def">class</span>
-    <span class="name">PathProvider</span><wbr>(<span class="base">typing.Protocol</span>):
+                    <div class="decorator decorator-dataclass">@dataclass(slots=True, frozen=True)</div>
 
-                <label class="view-source-button" for="PathProvider-view-source"><span>View Source</span></label>
+    <span class="def">class</span>
+    <span class="name">AudioPaths</span>:
+
+                <label class="view-source-button" for="AudioPaths-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#PathProvider"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PathProvider-23"><a href="#PathProvider-23"><span class="linenos">23</span></a><span class="k">class</span><span class="w"> </span><span class="nc">PathProvider</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
-</span><span id="PathProvider-24"><a href="#PathProvider-24"><span class="linenos">24</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Prototype to translate app_context methods into a simple protocol for this module,</span>
-</span><span id="PathProvider-25"><a href="#PathProvider-25"><span class="linenos">25</span></a><span class="sd">        to avoid a hard dependency on the full app context. </span>
-</span><span id="PathProvider-26"><a href="#PathProvider-26"><span class="linenos">26</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="PathProvider-27"><a href="#PathProvider-27"><span class="linenos">27</span></a>
-</span><span id="PathProvider-28"><a href="#PathProvider-28"><span class="linenos">28</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">transcript_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="PathProvider-29"><a href="#PathProvider-29"><span class="linenos">29</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory and file name to &#39;cache&#39; transcripts for a given video ID.</span>
-</span><span id="PathProvider-30"><a href="#PathProvider-30"><span class="linenos">30</span></a><span class="sd">            Args:</span>
-</span><span id="PathProvider-31"><a href="#PathProvider-31"><span class="linenos">31</span></a><span class="sd">                video_id: The YouTube video ID for which to provide a transcript cache path.</span>
-</span><span id="PathProvider-32"><a href="#PathProvider-32"><span class="linenos">32</span></a><span class="sd">            Returns:</span>
-</span><span id="PathProvider-33"><a href="#PathProvider-33"><span class="linenos">33</span></a><span class="sd">                A Path object representing the file path where the transcript for the given video</span>
-</span><span id="PathProvider-34"><a href="#PathProvider-34"><span class="linenos">34</span></a><span class="sd">                ID should be cached.</span>
-</span><span id="PathProvider-35"><a href="#PathProvider-35"><span class="linenos">35</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="PathProvider-36"><a href="#PathProvider-36"><span class="linenos">36</span></a>
-</span><span id="PathProvider-37"><a href="#PathProvider-37"><span class="linenos">37</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="PathProvider-38"><a href="#PathProvider-38"><span class="linenos">38</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory to temperary store audio files for a given video ID.</span>
-</span><span id="PathProvider-39"><a href="#PathProvider-39"><span class="linenos">39</span></a><span class="sd">            Returns:</span>
-</span><span id="PathProvider-40"><a href="#PathProvider-40"><span class="linenos">40</span></a><span class="sd">                A Path object representing the directory where audio files for the given video</span>
-</span><span id="PathProvider-41"><a href="#PathProvider-41"><span class="linenos">41</span></a><span class="sd">                ID should be stored.</span>
-</span><span id="PathProvider-42"><a href="#PathProvider-42"><span class="linenos">42</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="PathProvider-43"><a href="#PathProvider-43"><span class="linenos">43</span></a>
-</span><span id="PathProvider-44"><a href="#PathProvider-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="PathProvider-45"><a href="#PathProvider-45"><span class="linenos">45</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory and file name to temperarily store audio files for a given video ID.</span>
-</span><span id="PathProvider-46"><a href="#PathProvider-46"><span class="linenos">46</span></a><span class="sd">            Args:</span>
-</span><span id="PathProvider-47"><a href="#PathProvider-47"><span class="linenos">47</span></a><span class="sd">                audio_file: The name of the audio file.</span>
-</span><span id="PathProvider-48"><a href="#PathProvider-48"><span class="linenos">48</span></a><span class="sd">            Returns:</span>
-</span><span id="PathProvider-49"><a href="#PathProvider-49"><span class="linenos">49</span></a><span class="sd">                A Path object representing the file path where the audio file for a video</span>
-</span><span id="PathProvider-50"><a href="#PathProvider-50"><span class="linenos">50</span></a><span class="sd">                ID should be stored.</span>
-</span><span id="PathProvider-51"><a href="#PathProvider-51"><span class="linenos">51</span></a><span class="sd">        &quot;&quot;&quot;</span>
+    <a class="headerlink" href="#AudioPaths"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AudioPaths-25"><a href="#AudioPaths-25"><span class="linenos">25</span></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="AudioPaths-26"><a href="#AudioPaths-26"><span class="linenos">26</span></a><span class="k">class</span><span class="w"> </span><span class="nc">AudioPaths</span><span class="p">:</span>
+</span><span id="AudioPaths-27"><a href="#AudioPaths-27"><span class="linenos">27</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Provides methods to determine where to cache audio files for a given video ID.&quot;&quot;&quot;</span>
+</span><span id="AudioPaths-28"><a href="#AudioPaths-28"><span class="linenos">28</span></a>    <span class="n">audio_dir</span><span class="p">:</span> <span class="n">Path</span>
+</span><span id="AudioPaths-29"><a href="#AudioPaths-29"><span class="linenos">29</span></a>
+</span><span id="AudioPaths-30"><a href="#AudioPaths-30"><span class="linenos">30</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_source_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="AudioPaths-31"><a href="#AudioPaths-31"><span class="linenos">31</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory for temporary storage of yt_dlp audio cache.</span>
+</span><span id="AudioPaths-32"><a href="#AudioPaths-32"><span class="linenos">32</span></a><span class="sd">        Returns:</span>
+</span><span id="AudioPaths-33"><a href="#AudioPaths-33"><span class="linenos">33</span></a><span class="sd">            Path to the audio cache directory.</span>
+</span><span id="AudioPaths-34"><a href="#AudioPaths-34"><span class="linenos">34</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AudioPaths-35"><a href="#AudioPaths-35"><span class="linenos">35</span></a>        <span class="n">pth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_dir</span> <span class="o">/</span> <span class="s2">&quot;source&quot;</span>
+</span><span id="AudioPaths-36"><a href="#AudioPaths-36"><span class="linenos">36</span></a>        <span class="n">pth</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="AudioPaths-37"><a href="#AudioPaths-37"><span class="linenos">37</span></a>        <span class="k">return</span> <span class="n">pth</span>
+</span><span id="AudioPaths-38"><a href="#AudioPaths-38"><span class="linenos">38</span></a>
+</span><span id="AudioPaths-39"><a href="#AudioPaths-39"><span class="linenos">39</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_source_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="AudioPaths-40"><a href="#AudioPaths-40"><span class="linenos">40</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Path for temporary storage of a specific yt_dlp audio file.</span>
+</span><span id="AudioPaths-41"><a href="#AudioPaths-41"><span class="linenos">41</span></a><span class="sd">            Args:</span>
+</span><span id="AudioPaths-42"><a href="#AudioPaths-42"><span class="linenos">42</span></a><span class="sd">                audio_file: The name of the audio file.</span>
+</span><span id="AudioPaths-43"><a href="#AudioPaths-43"><span class="linenos">43</span></a><span class="sd">            Returns:</span>
+</span><span id="AudioPaths-44"><a href="#AudioPaths-44"><span class="linenos">44</span></a><span class="sd">                Path to the audio file.</span>
+</span><span id="AudioPaths-45"><a href="#AudioPaths-45"><span class="linenos">45</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AudioPaths-46"><a href="#AudioPaths-46"><span class="linenos">46</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_source_dir</span><span class="p">()</span> <span class="o">/</span> <span class="n">audio_file</span>
+</span><span id="AudioPaths-47"><a href="#AudioPaths-47"><span class="linenos">47</span></a>
+</span><span id="AudioPaths-48"><a href="#AudioPaths-48"><span class="linenos">48</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_converted_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="AudioPaths-49"><a href="#AudioPaths-49"><span class="linenos">49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory for temporary storage of converted audio files.</span>
+</span><span id="AudioPaths-50"><a href="#AudioPaths-50"><span class="linenos">50</span></a><span class="sd">            Returns:</span>
+</span><span id="AudioPaths-51"><a href="#AudioPaths-51"><span class="linenos">51</span></a><span class="sd">                Path to the converted audio cache directory.</span>
+</span><span id="AudioPaths-52"><a href="#AudioPaths-52"><span class="linenos">52</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AudioPaths-53"><a href="#AudioPaths-53"><span class="linenos">53</span></a>        <span class="n">pth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_dir</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span>
+</span><span id="AudioPaths-54"><a href="#AudioPaths-54"><span class="linenos">54</span></a>        <span class="n">pth</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="AudioPaths-55"><a href="#AudioPaths-55"><span class="linenos">55</span></a>        <span class="k">return</span> <span class="n">pth</span>
+</span><span id="AudioPaths-56"><a href="#AudioPaths-56"><span class="linenos">56</span></a>
+</span><span id="AudioPaths-57"><a href="#AudioPaths-57"><span class="linenos">57</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_converted_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="AudioPaths-58"><a href="#AudioPaths-58"><span class="linenos">58</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Path for temporary storage of a specific converted audio file.</span>
+</span><span id="AudioPaths-59"><a href="#AudioPaths-59"><span class="linenos">59</span></a><span class="sd">            Args:</span>
+</span><span id="AudioPaths-60"><a href="#AudioPaths-60"><span class="linenos">60</span></a><span class="sd">                audio_file: The name of the converted audio file.</span>
+</span><span id="AudioPaths-61"><a href="#AudioPaths-61"><span class="linenos">61</span></a><span class="sd">            Returns:</span>
+</span><span id="AudioPaths-62"><a href="#AudioPaths-62"><span class="linenos">62</span></a><span class="sd">                Path to the converted audio file.</span>
+</span><span id="AudioPaths-63"><a href="#AudioPaths-63"><span class="linenos">63</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AudioPaths-64"><a href="#AudioPaths-64"><span class="linenos">64</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_converted_dir</span><span class="p">()</span> <span class="o">/</span> <span class="n">audio_file</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Prototype to translate app_context methods into a simple protocol for this module,
-to avoid a hard dependency on the full app context.</p>
+            <div class="docstring"><p>Provides methods to determine where to cache audio files for a given video ID.</p>
 </div>
 
 
-                            <div id="PathProvider.__init__" class="classattr">
-                                        <input id="PathProvider.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
+                            <div id="AudioPaths.__init__" class="classattr">
+                                <div class="attr function">
             
-        <span class="name">PathProvider</span><span class="signature pdoc-code condensed">(<span class="param"><span class="o">*</span><span class="n">args</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span>)</span>
+        <span class="name">AudioPaths</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">audio_dir</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">Path</span></span>)</span>
 
-                <label class="view-source-button" for="PathProvider.__init__-view-source"><span>View Source</span></label>
-
+        
     </div>
-    <a class="headerlink" href="#PathProvider.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PathProvider.__init__-1960"><a href="#PathProvider.__init__-1960"><span class="linenos">1960</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_no_init_or_replace_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="PathProvider.__init__-1961"><a href="#PathProvider.__init__-1961"><span class="linenos">1961</span></a>    <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="PathProvider.__init__-1962"><a href="#PathProvider.__init__-1962"><span class="linenos">1962</span></a>
-</span><span id="PathProvider.__init__-1963"><a href="#PathProvider.__init__-1963"><span class="linenos">1963</span></a>    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_is_protocol</span><span class="p">:</span>
-</span><span id="PathProvider.__init__-1964"><a href="#PathProvider.__init__-1964"><span class="linenos">1964</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Protocols cannot be instantiated&#39;</span><span class="p">)</span>
-</span><span id="PathProvider.__init__-1965"><a href="#PathProvider.__init__-1965"><span class="linenos">1965</span></a>
-</span><span id="PathProvider.__init__-1966"><a href="#PathProvider.__init__-1966"><span class="linenos">1966</span></a>    <span class="c1"># Already using a custom `__init__`. No need to calculate correct</span>
-</span><span id="PathProvider.__init__-1967"><a href="#PathProvider.__init__-1967"><span class="linenos">1967</span></a>    <span class="c1"># `__init__` to call. This can lead to RecursionError. See bpo-45121.</span>
-</span><span id="PathProvider.__init__-1968"><a href="#PathProvider.__init__-1968"><span class="linenos">1968</span></a>    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_no_init_or_replace_init</span><span class="p">:</span>
-</span><span id="PathProvider.__init__-1969"><a href="#PathProvider.__init__-1969"><span class="linenos">1969</span></a>        <span class="k">return</span>
-</span><span id="PathProvider.__init__-1970"><a href="#PathProvider.__init__-1970"><span class="linenos">1970</span></a>
-</span><span id="PathProvider.__init__-1971"><a href="#PathProvider.__init__-1971"><span class="linenos">1971</span></a>    <span class="c1"># Initially, `__init__` of a protocol subclass is set to `_no_init_or_replace_init`.</span>
-</span><span id="PathProvider.__init__-1972"><a href="#PathProvider.__init__-1972"><span class="linenos">1972</span></a>    <span class="c1"># The first instantiation of the subclass will call `_no_init_or_replace_init` which</span>
-</span><span id="PathProvider.__init__-1973"><a href="#PathProvider.__init__-1973"><span class="linenos">1973</span></a>    <span class="c1"># searches for a proper new `__init__` in the MRO. The new `__init__`</span>
-</span><span id="PathProvider.__init__-1974"><a href="#PathProvider.__init__-1974"><span class="linenos">1974</span></a>    <span class="c1"># replaces the subclass&#39; old `__init__` (ie `_no_init_or_replace_init`). Subsequent</span>
-</span><span id="PathProvider.__init__-1975"><a href="#PathProvider.__init__-1975"><span class="linenos">1975</span></a>    <span class="c1"># instantiation of the protocol subclass will thus use the new</span>
-</span><span id="PathProvider.__init__-1976"><a href="#PathProvider.__init__-1976"><span class="linenos">1976</span></a>    <span class="c1"># `__init__` and no longer call `_no_init_or_replace_init`.</span>
-</span><span id="PathProvider.__init__-1977"><a href="#PathProvider.__init__-1977"><span class="linenos">1977</span></a>    <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__mro__</span><span class="p">:</span>
-</span><span id="PathProvider.__init__-1978"><a href="#PathProvider.__init__-1978"><span class="linenos">1978</span></a>        <span class="n">init</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__init__&#39;</span><span class="p">,</span> <span class="n">_no_init_or_replace_init</span><span class="p">)</span>
-</span><span id="PathProvider.__init__-1979"><a href="#PathProvider.__init__-1979"><span class="linenos">1979</span></a>        <span class="k">if</span> <span class="n">init</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_no_init_or_replace_init</span><span class="p">:</span>
-</span><span id="PathProvider.__init__-1980"><a href="#PathProvider.__init__-1980"><span class="linenos">1980</span></a>            <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">init</span>
-</span><span id="PathProvider.__init__-1981"><a href="#PathProvider.__init__-1981"><span class="linenos">1981</span></a>            <span class="k">break</span>
-</span><span id="PathProvider.__init__-1982"><a href="#PathProvider.__init__-1982"><span class="linenos">1982</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="PathProvider.__init__-1983"><a href="#PathProvider.__init__-1983"><span class="linenos">1983</span></a>        <span class="c1"># should not happen</span>
-</span><span id="PathProvider.__init__-1984"><a href="#PathProvider.__init__-1984"><span class="linenos">1984</span></a>        <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__init__</span>
-</span><span id="PathProvider.__init__-1985"><a href="#PathProvider.__init__-1985"><span class="linenos">1985</span></a>
-</span><span id="PathProvider.__init__-1986"><a href="#PathProvider.__init__-1986"><span class="linenos">1986</span></a>    <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span></pre></div>
-
-
+    <a class="headerlink" href="#AudioPaths.__init__"></a>
+    
     
 
                             </div>
-                            <div id="PathProvider.transcript_path" class="classattr">
-                                        <input id="PathProvider.transcript_path-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                            <div id="AudioPaths.audio_dir" class="classattr">
+                                <div class="attr variable">
+            <span class="name">audio_dir</span><span class="annotation">: pathlib._local.Path</span>
+
+        
+    </div>
+    <a class="headerlink" href="#AudioPaths.audio_dir"></a>
+    
+    
+
+                            </div>
+                            <div id="AudioPaths.audio_source_dir" class="classattr">
+                                        <input id="AudioPaths.audio_source_dir-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">transcript_path</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">Path</span>:</span></span>
+        <span class="name">audio_source_dir</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">Path</span>:</span></span>
 
-                <label class="view-source-button" for="PathProvider.transcript_path-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="AudioPaths.audio_source_dir-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#PathProvider.transcript_path"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PathProvider.transcript_path-28"><a href="#PathProvider.transcript_path-28"><span class="linenos">28</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">transcript_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">video_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="PathProvider.transcript_path-29"><a href="#PathProvider.transcript_path-29"><span class="linenos">29</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory and file name to &#39;cache&#39; transcripts for a given video ID.</span>
-</span><span id="PathProvider.transcript_path-30"><a href="#PathProvider.transcript_path-30"><span class="linenos">30</span></a><span class="sd">            Args:</span>
-</span><span id="PathProvider.transcript_path-31"><a href="#PathProvider.transcript_path-31"><span class="linenos">31</span></a><span class="sd">                video_id: The YouTube video ID for which to provide a transcript cache path.</span>
-</span><span id="PathProvider.transcript_path-32"><a href="#PathProvider.transcript_path-32"><span class="linenos">32</span></a><span class="sd">            Returns:</span>
-</span><span id="PathProvider.transcript_path-33"><a href="#PathProvider.transcript_path-33"><span class="linenos">33</span></a><span class="sd">                A Path object representing the file path where the transcript for the given video</span>
-</span><span id="PathProvider.transcript_path-34"><a href="#PathProvider.transcript_path-34"><span class="linenos">34</span></a><span class="sd">                ID should be cached.</span>
-</span><span id="PathProvider.transcript_path-35"><a href="#PathProvider.transcript_path-35"><span class="linenos">35</span></a><span class="sd">        &quot;&quot;&quot;</span>
+    <a class="headerlink" href="#AudioPaths.audio_source_dir"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AudioPaths.audio_source_dir-30"><a href="#AudioPaths.audio_source_dir-30"><span class="linenos">30</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_source_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="AudioPaths.audio_source_dir-31"><a href="#AudioPaths.audio_source_dir-31"><span class="linenos">31</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory for temporary storage of yt_dlp audio cache.</span>
+</span><span id="AudioPaths.audio_source_dir-32"><a href="#AudioPaths.audio_source_dir-32"><span class="linenos">32</span></a><span class="sd">        Returns:</span>
+</span><span id="AudioPaths.audio_source_dir-33"><a href="#AudioPaths.audio_source_dir-33"><span class="linenos">33</span></a><span class="sd">            Path to the audio cache directory.</span>
+</span><span id="AudioPaths.audio_source_dir-34"><a href="#AudioPaths.audio_source_dir-34"><span class="linenos">34</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AudioPaths.audio_source_dir-35"><a href="#AudioPaths.audio_source_dir-35"><span class="linenos">35</span></a>        <span class="n">pth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_dir</span> <span class="o">/</span> <span class="s2">&quot;source&quot;</span>
+</span><span id="AudioPaths.audio_source_dir-36"><a href="#AudioPaths.audio_source_dir-36"><span class="linenos">36</span></a>        <span class="n">pth</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="AudioPaths.audio_source_dir-37"><a href="#AudioPaths.audio_source_dir-37"><span class="linenos">37</span></a>        <span class="k">return</span> <span class="n">pth</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Directory and file name to 'cache' transcripts for a given video ID.
-Args:
-    video_id: The YouTube video ID for which to provide a transcript cache path.
+            <div class="docstring"><p>Directory for temporary storage of yt_dlp audio cache.
 Returns:
-    A Path object representing the file path where the transcript for the given video
-    ID should be cached.</p>
+    Path to the audio cache directory.</p>
 </div>
 
 
                             </div>
-                            <div id="PathProvider.audio_dir" class="classattr">
-                                        <input id="PathProvider.audio_dir-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                            <div id="AudioPaths.audio_source_path" class="classattr">
+                                        <input id="AudioPaths.audio_source_path-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">audio_dir</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">Path</span>:</span></span>
+        <span class="name">audio_source_path</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">Path</span>:</span></span>
 
-                <label class="view-source-button" for="PathProvider.audio_dir-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="AudioPaths.audio_source_path-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#PathProvider.audio_dir"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PathProvider.audio_dir-37"><a href="#PathProvider.audio_dir-37"><span class="linenos">37</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="PathProvider.audio_dir-38"><a href="#PathProvider.audio_dir-38"><span class="linenos">38</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory to temperary store audio files for a given video ID.</span>
-</span><span id="PathProvider.audio_dir-39"><a href="#PathProvider.audio_dir-39"><span class="linenos">39</span></a><span class="sd">            Returns:</span>
-</span><span id="PathProvider.audio_dir-40"><a href="#PathProvider.audio_dir-40"><span class="linenos">40</span></a><span class="sd">                A Path object representing the directory where audio files for the given video</span>
-</span><span id="PathProvider.audio_dir-41"><a href="#PathProvider.audio_dir-41"><span class="linenos">41</span></a><span class="sd">                ID should be stored.</span>
-</span><span id="PathProvider.audio_dir-42"><a href="#PathProvider.audio_dir-42"><span class="linenos">42</span></a><span class="sd">        &quot;&quot;&quot;</span>
+    <a class="headerlink" href="#AudioPaths.audio_source_path"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AudioPaths.audio_source_path-39"><a href="#AudioPaths.audio_source_path-39"><span class="linenos">39</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_source_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="AudioPaths.audio_source_path-40"><a href="#AudioPaths.audio_source_path-40"><span class="linenos">40</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Path for temporary storage of a specific yt_dlp audio file.</span>
+</span><span id="AudioPaths.audio_source_path-41"><a href="#AudioPaths.audio_source_path-41"><span class="linenos">41</span></a><span class="sd">            Args:</span>
+</span><span id="AudioPaths.audio_source_path-42"><a href="#AudioPaths.audio_source_path-42"><span class="linenos">42</span></a><span class="sd">                audio_file: The name of the audio file.</span>
+</span><span id="AudioPaths.audio_source_path-43"><a href="#AudioPaths.audio_source_path-43"><span class="linenos">43</span></a><span class="sd">            Returns:</span>
+</span><span id="AudioPaths.audio_source_path-44"><a href="#AudioPaths.audio_source_path-44"><span class="linenos">44</span></a><span class="sd">                Path to the audio file.</span>
+</span><span id="AudioPaths.audio_source_path-45"><a href="#AudioPaths.audio_source_path-45"><span class="linenos">45</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AudioPaths.audio_source_path-46"><a href="#AudioPaths.audio_source_path-46"><span class="linenos">46</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_source_dir</span><span class="p">()</span> <span class="o">/</span> <span class="n">audio_file</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Directory to temperary store audio files for a given video ID.
-Returns:
-    A Path object representing the directory where audio files for the given video
-    ID should be stored.</p>
-</div>
-
-
-                            </div>
-                            <div id="PathProvider.audio_path" class="classattr">
-                                        <input id="PathProvider.audio_path-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">audio_path</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">Path</span>:</span></span>
-
-                <label class="view-source-button" for="PathProvider.audio_path-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#PathProvider.audio_path"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PathProvider.audio_path-44"><a href="#PathProvider.audio_path-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span id="PathProvider.audio_path-45"><a href="#PathProvider.audio_path-45"><span class="linenos">45</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory and file name to temperarily store audio files for a given video ID.</span>
-</span><span id="PathProvider.audio_path-46"><a href="#PathProvider.audio_path-46"><span class="linenos">46</span></a><span class="sd">            Args:</span>
-</span><span id="PathProvider.audio_path-47"><a href="#PathProvider.audio_path-47"><span class="linenos">47</span></a><span class="sd">                audio_file: The name of the audio file.</span>
-</span><span id="PathProvider.audio_path-48"><a href="#PathProvider.audio_path-48"><span class="linenos">48</span></a><span class="sd">            Returns:</span>
-</span><span id="PathProvider.audio_path-49"><a href="#PathProvider.audio_path-49"><span class="linenos">49</span></a><span class="sd">                A Path object representing the file path where the audio file for a video</span>
-</span><span id="PathProvider.audio_path-50"><a href="#PathProvider.audio_path-50"><span class="linenos">50</span></a><span class="sd">                ID should be stored.</span>
-</span><span id="PathProvider.audio_path-51"><a href="#PathProvider.audio_path-51"><span class="linenos">51</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span></pre></div>
-
-
-            <div class="docstring"><p>Directory and file name to temperarily store audio files for a given video ID.
+            <div class="docstring"><p>Path for temporary storage of a specific yt_dlp audio file.
 Args:
     audio_file: The name of the audio file.
 Returns:
-    A Path object representing the file path where the audio file for a video
-    ID should be stored.</p>
+    Path to the audio file.</p>
+</div>
+
+
+                            </div>
+                            <div id="AudioPaths.audio_converted_dir" class="classattr">
+                                        <input id="AudioPaths.audio_converted_dir-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">audio_converted_dir</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">Path</span>:</span></span>
+
+                <label class="view-source-button" for="AudioPaths.audio_converted_dir-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#AudioPaths.audio_converted_dir"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AudioPaths.audio_converted_dir-48"><a href="#AudioPaths.audio_converted_dir-48"><span class="linenos">48</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_converted_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="AudioPaths.audio_converted_dir-49"><a href="#AudioPaths.audio_converted_dir-49"><span class="linenos">49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Directory for temporary storage of converted audio files.</span>
+</span><span id="AudioPaths.audio_converted_dir-50"><a href="#AudioPaths.audio_converted_dir-50"><span class="linenos">50</span></a><span class="sd">            Returns:</span>
+</span><span id="AudioPaths.audio_converted_dir-51"><a href="#AudioPaths.audio_converted_dir-51"><span class="linenos">51</span></a><span class="sd">                Path to the converted audio cache directory.</span>
+</span><span id="AudioPaths.audio_converted_dir-52"><a href="#AudioPaths.audio_converted_dir-52"><span class="linenos">52</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AudioPaths.audio_converted_dir-53"><a href="#AudioPaths.audio_converted_dir-53"><span class="linenos">53</span></a>        <span class="n">pth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_dir</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span>
+</span><span id="AudioPaths.audio_converted_dir-54"><a href="#AudioPaths.audio_converted_dir-54"><span class="linenos">54</span></a>        <span class="n">pth</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="AudioPaths.audio_converted_dir-55"><a href="#AudioPaths.audio_converted_dir-55"><span class="linenos">55</span></a>        <span class="k">return</span> <span class="n">pth</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Directory for temporary storage of converted audio files.
+Returns:
+    Path to the converted audio cache directory.</p>
+</div>
+
+
+                            </div>
+                            <div id="AudioPaths.audio_converted_path" class="classattr">
+                                        <input id="AudioPaths.audio_converted_path-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">audio_converted_path</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="n">pathlib</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">Path</span>:</span></span>
+
+                <label class="view-source-button" for="AudioPaths.audio_converted_path-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#AudioPaths.audio_converted_path"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AudioPaths.audio_converted_path-57"><a href="#AudioPaths.audio_converted_path-57"><span class="linenos">57</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">audio_converted_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span id="AudioPaths.audio_converted_path-58"><a href="#AudioPaths.audio_converted_path-58"><span class="linenos">58</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Path for temporary storage of a specific converted audio file.</span>
+</span><span id="AudioPaths.audio_converted_path-59"><a href="#AudioPaths.audio_converted_path-59"><span class="linenos">59</span></a><span class="sd">            Args:</span>
+</span><span id="AudioPaths.audio_converted_path-60"><a href="#AudioPaths.audio_converted_path-60"><span class="linenos">60</span></a><span class="sd">                audio_file: The name of the converted audio file.</span>
+</span><span id="AudioPaths.audio_converted_path-61"><a href="#AudioPaths.audio_converted_path-61"><span class="linenos">61</span></a><span class="sd">            Returns:</span>
+</span><span id="AudioPaths.audio_converted_path-62"><a href="#AudioPaths.audio_converted_path-62"><span class="linenos">62</span></a><span class="sd">                Path to the converted audio file.</span>
+</span><span id="AudioPaths.audio_converted_path-63"><a href="#AudioPaths.audio_converted_path-63"><span class="linenos">63</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AudioPaths.audio_converted_path-64"><a href="#AudioPaths.audio_converted_path-64"><span class="linenos">64</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_converted_dir</span><span class="p">()</span> <span class="o">/</span> <span class="n">audio_file</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Path for temporary storage of a specific converted audio file.
+Args:
+    audio_file: The name of the converted audio file.
+Returns:
+    Path to the converted audio file.</p>
 </div>
 
 
                             </div>
                 </section>
-                <section id="set_context">
-                            <input id="set_context-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                <section id="set_info">
+                            <input id="set_info-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">set_context</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">context</span><span class="p">:</span> <span class="n"><a href="#PathProvider">PathProvider</a></span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+        <span class="name">set_info</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">info</span><span class="p">:</span> <span class="n"><a href="#AudioPaths">AudioPaths</a></span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
 
-                <label class="view-source-button" for="set_context-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="set_info-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#set_context"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="set_context-57"><a href="#set_context-57"><span class="linenos">57</span></a><span class="k">def</span><span class="w"> </span><span class="nf">set_context</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">PathProvider</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="set_context-58"><a href="#set_context-58"><span class="linenos">58</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Set the global context for transcript cache path provision.</span>
-</span><span id="set_context-59"><a href="#set_context-59"><span class="linenos">59</span></a><span class="sd">        Args:</span>
-</span><span id="set_context-60"><a href="#set_context-60"><span class="linenos">60</span></a><span class="sd">            context: An object implementing the `TranscriptPathProvider` protocol, which provides</span>
-</span><span id="set_context-61"><a href="#set_context-61"><span class="linenos">61</span></a><span class="sd">                    a method `transcript_path(video_id: str) -&gt; Path` to determine where to cache</span>
-</span><span id="set_context-62"><a href="#set_context-62"><span class="linenos">62</span></a><span class="sd">                    transcripts for a given video ID.</span>
-</span><span id="set_context-63"><a href="#set_context-63"><span class="linenos">63</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="set_context-64"><a href="#set_context-64"><span class="linenos">64</span></a>    <span class="k">global</span> <span class="n">_CONTEXT</span>             <span class="c1">#pylint: disable=global-statement</span>
-</span><span id="set_context-65"><a href="#set_context-65"><span class="linenos">65</span></a>    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">context</span>
+    <a class="headerlink" href="#set_info"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="set_info-71"><a href="#set_info-71"><span class="linenos">71</span></a><span class="k">def</span><span class="w"> </span><span class="nf">set_info</span><span class="p">(</span><span class="n">info</span><span class="p">:</span> <span class="n">AudioPaths</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="set_info-72"><a href="#set_info-72"><span class="linenos">72</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Set the global info for transcript cache path provision.</span>
+</span><span id="set_info-73"><a href="#set_info-73"><span class="linenos">73</span></a><span class="sd">        Args:</span>
+</span><span id="set_info-74"><a href="#set_info-74"><span class="linenos">74</span></a><span class="sd">            info: An object implementing the `AudioPaths` protocol, which provides</span>
+</span><span id="set_info-75"><a href="#set_info-75"><span class="linenos">75</span></a><span class="sd">                    methods to determine where to cache audio files for a given video ID.</span>
+</span><span id="set_info-76"><a href="#set_info-76"><span class="linenos">76</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="set_info-77"><a href="#set_info-77"><span class="linenos">77</span></a>    <span class="k">global</span> <span class="n">_INFO</span>             <span class="c1">#pylint: disable=global-statement</span>
+</span><span id="set_info-78"><a href="#set_info-78"><span class="linenos">78</span></a>    <span class="n">_INFO</span> <span class="o">=</span> <span class="n">info</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Set the global context for transcript cache path provision.
+            <div class="docstring"><p>Set the global info for transcript cache path provision.
 Args:
-    context: An object implementing the <code>TranscriptPathProvider</code> protocol, which provides
-            a method <code>transcript_path(video_id: str) -&gt; Path</code> to determine where to cache
-            transcripts for a given video ID.</p>
+    info: An object implementing the <code><a href="#AudioPaths">AudioPaths</a></code> protocol, which provides
+            methods to determine where to cache audio files for a given video ID.</p>
 </div>
 
 
@@ -475,73 +506,71 @@ Args:
 <div class="attr function">
             
         <span class="def">async def</span>
-        <span class="name">transcribe_youtube_audio_async</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">url</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">property</span> <span class="nb">object</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">chunk_duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">property</span> <span class="nb">object</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">overlap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">property</span> <span class="nb">object</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">progress_rptr</span><span class="p">:</span> <span class="n"><a href="yt_types.html#ProgressReporter">yt_lib.yt_types.ProgressReporter</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">keep_files</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></span><span class="return-annotation">) -> <span class="n"><a href="audio/audio_types.html#AudioTranscript">yt_lib.audio.audio_types.AudioTranscript</a></span>:</span></span>
+        <span class="name">transcribe_youtube_audio_async</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">url</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;small&#39;</span>,</span><span class="param">	<span class="n">chunk_duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">30.0</span>,</span><span class="param">	<span class="n">overlap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span>,</span><span class="param">	<span class="n">progress_rptr</span><span class="p">:</span> <span class="n"><a href="yt_types.html#ProgressReporter">yt_lib.yt_types.ProgressReporter</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">keep_files</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></span><span class="return-annotation">) -> <span class="nb">list</span><span class="p">[</span><span class="n"><a href="yt_types.html#Snippet">yt_lib.yt_types.Snippet</a></span><span class="p">]</span>:</span></span>
 
                 <label class="view-source-button" for="transcribe_youtube_audio_async-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#transcribe_youtube_audio_async"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="transcribe_youtube_audio_async-98"><a href="#transcribe_youtube_audio_async-98"><span class="linenos"> 98</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">transcribe_youtube_audio_async</span><span class="p">(</span>
-</span><span id="transcribe_youtube_audio_async-99"><a href="#transcribe_youtube_audio_async-99"><span class="linenos"> 99</span></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-100"><a href="#transcribe_youtube_audio_async-100"><span class="linenos">100</span></a>    <span class="o">*</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-101"><a href="#transcribe_youtube_audio_async-101"><span class="linenos">101</span></a>    <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">whisper_model</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-102"><a href="#transcribe_youtube_audio_async-102"><span class="linenos">102</span></a>    <span class="n">chunk_duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">chunk_duration_seconds</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-103"><a href="#transcribe_youtube_audio_async-103"><span class="linenos">103</span></a>    <span class="n">overlap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">chunk_overlap_seconds</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-104"><a href="#transcribe_youtube_audio_async-104"><span class="linenos">104</span></a>    <span class="n">progress_rptr</span><span class="p">:</span> <span class="n">ProgressReporter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-105"><a href="#transcribe_youtube_audio_async-105"><span class="linenos">105</span></a>    <span class="n">keep_files</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-106"><a href="#transcribe_youtube_audio_async-106"><span class="linenos">106</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioTranscript</span><span class="p">:</span>
-</span><span id="transcribe_youtube_audio_async-107"><a href="#transcribe_youtube_audio_async-107"><span class="linenos">107</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Transcribe the audio from a YouTube video given its URL, using yt_dlp to download the audio,</span>
-</span><span id="transcribe_youtube_audio_async-108"><a href="#transcribe_youtube_audio_async-108"><span class="linenos">108</span></a><span class="sd">        convert it to WAV, and then transcribe it using Whisper.</span>
-</span><span id="transcribe_youtube_audio_async-109"><a href="#transcribe_youtube_audio_async-109"><span class="linenos">109</span></a><span class="sd">        Args:</span>
-</span><span id="transcribe_youtube_audio_async-110"><a href="#transcribe_youtube_audio_async-110"><span class="linenos">110</span></a><span class="sd">            url: The URL of the YouTube video.</span>
-</span><span id="transcribe_youtube_audio_async-111"><a href="#transcribe_youtube_audio_async-111"><span class="linenos">111</span></a><span class="sd">            model_name: The Whisper model name to use.</span>
-</span><span id="transcribe_youtube_audio_async-112"><a href="#transcribe_youtube_audio_async-112"><span class="linenos">112</span></a><span class="sd">            chunk_duration_s: Duration of each audio chunk in seconds.</span>
-</span><span id="transcribe_youtube_audio_async-113"><a href="#transcribe_youtube_audio_async-113"><span class="linenos">113</span></a><span class="sd">            overlap_s: Overlap between audio chunks in seconds.</span>
-</span><span id="transcribe_youtube_audio_async-114"><a href="#transcribe_youtube_audio_async-114"><span class="linenos">114</span></a><span class="sd">            progress_rptr: Optional progress reporter callback.</span>
-</span><span id="transcribe_youtube_audio_async-115"><a href="#transcribe_youtube_audio_async-115"><span class="linenos">115</span></a><span class="sd">            keep_files: Whether to keep the downloaded and converted audio files.</span>
-</span><span id="transcribe_youtube_audio_async-116"><a href="#transcribe_youtube_audio_async-116"><span class="linenos">116</span></a><span class="sd">        Returns:</span>
-</span><span id="transcribe_youtube_audio_async-117"><a href="#transcribe_youtube_audio_async-117"><span class="linenos">117</span></a><span class="sd">            An AudioTranscript object containing the video ID, title, and transcription snippets.</span>
-</span><span id="transcribe_youtube_audio_async-118"><a href="#transcribe_youtube_audio_async-118"><span class="linenos">118</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="transcribe_youtube_audio_async-119"><a href="#transcribe_youtube_audio_async-119"><span class="linenos">119</span></a>    <span class="n">source_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">_get_audio_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;source_audio&quot;</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-120"><a href="#transcribe_youtube_audio_async-120"><span class="linenos">120</span></a>    <span class="n">wav_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">_get_audio_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;wav&quot;</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-121"><a href="#transcribe_youtube_audio_async-121"><span class="linenos">121</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
-</span><span id="transcribe_youtube_audio_async-122"><a href="#transcribe_youtube_audio_async-122"><span class="linenos">122</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_total</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-123"><a href="#transcribe_youtube_audio_async-123"><span class="linenos">123</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-124"><a href="#transcribe_youtube_audio_async-124"><span class="linenos">124</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Starting transcription process.&quot;</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-125"><a href="#transcribe_youtube_audio_async-125"><span class="linenos">125</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Downloading audio&quot;</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-126"><a href="#transcribe_youtube_audio_async-126"><span class="linenos">126</span></a>    <span class="n">source</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">download_audio_source</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">source_dir</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-127"><a href="#transcribe_youtube_audio_async-127"><span class="linenos">127</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
-</span><span id="transcribe_youtube_audio_async-128"><a href="#transcribe_youtube_audio_async-128"><span class="linenos">128</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-129"><a href="#transcribe_youtube_audio_async-129"><span class="linenos">129</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Converting audio to 16 kHz mono WAV&quot;</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-130"><a href="#transcribe_youtube_audio_async-130"><span class="linenos">130</span></a>    <span class="n">converted</span> <span class="o">=</span> <span class="k">await</span> <span class="n">convert_to_16k_mono_wav</span><span class="p">(</span>
-</span><span id="transcribe_youtube_audio_async-131"><a href="#transcribe_youtube_audio_async-131"><span class="linenos">131</span></a>        <span class="n">source</span><span class="o">.</span><span class="n">source_path</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-132"><a href="#transcribe_youtube_audio_async-132"><span class="linenos">132</span></a>        <span class="n">wav_dir</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-133"><a href="#transcribe_youtube_audio_async-133"><span class="linenos">133</span></a>        <span class="n">output_stem</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">video_id</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-134"><a href="#transcribe_youtube_audio_async-134"><span class="linenos">134</span></a>    <span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-135"><a href="#transcribe_youtube_audio_async-135"><span class="linenos">135</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
-</span><span id="transcribe_youtube_audio_async-136"><a href="#transcribe_youtube_audio_async-136"><span class="linenos">136</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-137"><a href="#transcribe_youtube_audio_async-137"><span class="linenos">137</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Running Whisper transcription&quot;</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-138"><a href="#transcribe_youtube_audio_async-138"><span class="linenos">138</span></a>    <span class="n">snippets</span> <span class="o">=</span> <span class="k">await</span> <span class="n">transcribe_wav_in_chunks</span><span class="p">(</span>
-</span><span id="transcribe_youtube_audio_async-139"><a href="#transcribe_youtube_audio_async-139"><span class="linenos">139</span></a>        <span class="n">converted</span><span class="o">.</span><span class="n">wav_path</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-140"><a href="#transcribe_youtube_audio_async-140"><span class="linenos">140</span></a>        <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-141"><a href="#transcribe_youtube_audio_async-141"><span class="linenos">141</span></a>        <span class="n">chunk_duration</span><span class="o">=</span><span class="n">chunk_duration_s</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-142"><a href="#transcribe_youtube_audio_async-142"><span class="linenos">142</span></a>        <span class="n">overlap</span><span class="o">=</span><span class="n">overlap_s</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-143"><a href="#transcribe_youtube_audio_async-143"><span class="linenos">143</span></a>        <span class="n">progress_rptr</span><span class="o">=</span><span class="n">progress_rptr</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-144"><a href="#transcribe_youtube_audio_async-144"><span class="linenos">144</span></a>    <span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-145"><a href="#transcribe_youtube_audio_async-145"><span class="linenos">145</span></a>    <span class="c1"># text = &quot;\n&quot;.join(chunk.text for chunk in chunks if chunk.text)</span>
-</span><span id="transcribe_youtube_audio_async-146"><a href="#transcribe_youtube_audio_async-146"><span class="linenos">146</span></a>
-</span><span id="transcribe_youtube_audio_async-147"><a href="#transcribe_youtube_audio_async-147"><span class="linenos">147</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
-</span><span id="transcribe_youtube_audio_async-148"><a href="#transcribe_youtube_audio_async-148"><span class="linenos">148</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Transcription complete&quot;</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-149"><a href="#transcribe_youtube_audio_async-149"><span class="linenos">149</span></a>
-</span><span id="transcribe_youtube_audio_async-150"><a href="#transcribe_youtube_audio_async-150"><span class="linenos">150</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">keep_files</span><span class="p">:</span>
-</span><span id="transcribe_youtube_audio_async-151"><a href="#transcribe_youtube_audio_async-151"><span class="linenos">151</span></a>        <span class="n">source</span><span class="o">.</span><span class="n">source_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-152"><a href="#transcribe_youtube_audio_async-152"><span class="linenos">152</span></a>        <span class="n">converted</span><span class="o">.</span><span class="n">wav_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="transcribe_youtube_audio_async-153"><a href="#transcribe_youtube_audio_async-153"><span class="linenos">153</span></a>
-</span><span id="transcribe_youtube_audio_async-154"><a href="#transcribe_youtube_audio_async-154"><span class="linenos">154</span></a>    <span class="k">return</span> <span class="n">AudioTranscript</span><span class="p">(</span>
-</span><span id="transcribe_youtube_audio_async-155"><a href="#transcribe_youtube_audio_async-155"><span class="linenos">155</span></a>        <span class="n">video_id</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">video_id</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-156"><a href="#transcribe_youtube_audio_async-156"><span class="linenos">156</span></a>        <span class="n">title</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-157"><a href="#transcribe_youtube_audio_async-157"><span class="linenos">157</span></a>        <span class="n">snippets</span><span class="o">=</span><span class="n">snippets</span><span class="p">,</span>
-</span><span id="transcribe_youtube_audio_async-158"><a href="#transcribe_youtube_audio_async-158"><span class="linenos">158</span></a>    <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="transcribe_youtube_audio_async-108"><a href="#transcribe_youtube_audio_async-108"><span class="linenos">108</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">transcribe_youtube_audio_async</span><span class="p">(</span>
+</span><span id="transcribe_youtube_audio_async-109"><a href="#transcribe_youtube_audio_async-109"><span class="linenos">109</span></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-110"><a href="#transcribe_youtube_audio_async-110"><span class="linenos">110</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-111"><a href="#transcribe_youtube_audio_async-111"><span class="linenos">111</span></a>    <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">whisper_model</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-112"><a href="#transcribe_youtube_audio_async-112"><span class="linenos">112</span></a>    <span class="n">chunk_duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">chunk_duration_seconds</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-113"><a href="#transcribe_youtube_audio_async-113"><span class="linenos">113</span></a>    <span class="n">overlap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDIO_SETTINGS</span><span class="o">.</span><span class="n">chunk_overlap_seconds</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-114"><a href="#transcribe_youtube_audio_async-114"><span class="linenos">114</span></a>    <span class="n">progress_rptr</span><span class="p">:</span> <span class="n">ProgressReporter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-115"><a href="#transcribe_youtube_audio_async-115"><span class="linenos">115</span></a>    <span class="n">keep_files</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-116"><a href="#transcribe_youtube_audio_async-116"><span class="linenos">116</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Snippet</span><span class="p">]:</span>
+</span><span id="transcribe_youtube_audio_async-117"><a href="#transcribe_youtube_audio_async-117"><span class="linenos">117</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Transcribe the audio from a YouTube video given its URL, using yt_dlp to download the audio,</span>
+</span><span id="transcribe_youtube_audio_async-118"><a href="#transcribe_youtube_audio_async-118"><span class="linenos">118</span></a><span class="sd">        convert it to WAV, and then transcribe it using Whisper.</span>
+</span><span id="transcribe_youtube_audio_async-119"><a href="#transcribe_youtube_audio_async-119"><span class="linenos">119</span></a><span class="sd">        Args:</span>
+</span><span id="transcribe_youtube_audio_async-120"><a href="#transcribe_youtube_audio_async-120"><span class="linenos">120</span></a><span class="sd">            url: The URL of the YouTube video.</span>
+</span><span id="transcribe_youtube_audio_async-121"><a href="#transcribe_youtube_audio_async-121"><span class="linenos">121</span></a><span class="sd">            model_name: The Whisper model name to use.</span>
+</span><span id="transcribe_youtube_audio_async-122"><a href="#transcribe_youtube_audio_async-122"><span class="linenos">122</span></a><span class="sd">            chunk_duration_s: Duration of each audio chunk in seconds.</span>
+</span><span id="transcribe_youtube_audio_async-123"><a href="#transcribe_youtube_audio_async-123"><span class="linenos">123</span></a><span class="sd">            overlap_s: Overlap between audio chunks in seconds.</span>
+</span><span id="transcribe_youtube_audio_async-124"><a href="#transcribe_youtube_audio_async-124"><span class="linenos">124</span></a><span class="sd">            progress_rptr: Optional progress reporter callback.</span>
+</span><span id="transcribe_youtube_audio_async-125"><a href="#transcribe_youtube_audio_async-125"><span class="linenos">125</span></a><span class="sd">            keep_files: Whether to keep the downloaded and converted audio files.</span>
+</span><span id="transcribe_youtube_audio_async-126"><a href="#transcribe_youtube_audio_async-126"><span class="linenos">126</span></a><span class="sd">        Returns:</span>
+</span><span id="transcribe_youtube_audio_async-127"><a href="#transcribe_youtube_audio_async-127"><span class="linenos">127</span></a><span class="sd">            A list of Snippet objects containing the transcription snippets.</span>
+</span><span id="transcribe_youtube_audio_async-128"><a href="#transcribe_youtube_audio_async-128"><span class="linenos">128</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="transcribe_youtube_audio_async-129"><a href="#transcribe_youtube_audio_async-129"><span class="linenos">129</span></a>    <span class="n">source_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">_get_audio_source_dir</span><span class="p">()</span>
+</span><span id="transcribe_youtube_audio_async-130"><a href="#transcribe_youtube_audio_async-130"><span class="linenos">130</span></a>    <span class="n">wav_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">_get_audio_converted_dir</span><span class="p">()</span>
+</span><span id="transcribe_youtube_audio_async-131"><a href="#transcribe_youtube_audio_async-131"><span class="linenos">131</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
+</span><span id="transcribe_youtube_audio_async-132"><a href="#transcribe_youtube_audio_async-132"><span class="linenos">132</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_total</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-133"><a href="#transcribe_youtube_audio_async-133"><span class="linenos">133</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-134"><a href="#transcribe_youtube_audio_async-134"><span class="linenos">134</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Starting transcription process.&quot;</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-135"><a href="#transcribe_youtube_audio_async-135"><span class="linenos">135</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloading audio to </span><span class="si">{</span><span class="n">source_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-136"><a href="#transcribe_youtube_audio_async-136"><span class="linenos">136</span></a>    <span class="n">source</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">download_audio_source</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">source_dir</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-137"><a href="#transcribe_youtube_audio_async-137"><span class="linenos">137</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
+</span><span id="transcribe_youtube_audio_async-138"><a href="#transcribe_youtube_audio_async-138"><span class="linenos">138</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-139"><a href="#transcribe_youtube_audio_async-139"><span class="linenos">139</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Audio download complete: </span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-140"><a href="#transcribe_youtube_audio_async-140"><span class="linenos">140</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Converting audio to 16 kHz mono WAV&quot;</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-141"><a href="#transcribe_youtube_audio_async-141"><span class="linenos">141</span></a>    <span class="n">converted</span> <span class="o">=</span> <span class="k">await</span> <span class="n">convert_to_16k_mono_wav</span><span class="p">(</span>
+</span><span id="transcribe_youtube_audio_async-142"><a href="#transcribe_youtube_audio_async-142"><span class="linenos">142</span></a>        <span class="n">source</span><span class="o">.</span><span class="n">source_path</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-143"><a href="#transcribe_youtube_audio_async-143"><span class="linenos">143</span></a>        <span class="n">wav_dir</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-144"><a href="#transcribe_youtube_audio_async-144"><span class="linenos">144</span></a>        <span class="n">output_stem</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">video_id</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-145"><a href="#transcribe_youtube_audio_async-145"><span class="linenos">145</span></a>    <span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-146"><a href="#transcribe_youtube_audio_async-146"><span class="linenos">146</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
+</span><span id="transcribe_youtube_audio_async-147"><a href="#transcribe_youtube_audio_async-147"><span class="linenos">147</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">increment</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-148"><a href="#transcribe_youtube_audio_async-148"><span class="linenos">148</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Audio conversion complete: </span><span class="si">{</span><span class="n">converted</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-149"><a href="#transcribe_youtube_audio_async-149"><span class="linenos">149</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Running Whisper transcription&quot;</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-150"><a href="#transcribe_youtube_audio_async-150"><span class="linenos">150</span></a>    <span class="n">snippets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Snippet</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">transcribe_wav_in_chunks</span><span class="p">(</span>
+</span><span id="transcribe_youtube_audio_async-151"><a href="#transcribe_youtube_audio_async-151"><span class="linenos">151</span></a>        <span class="n">converted</span><span class="o">.</span><span class="n">wav_path</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-152"><a href="#transcribe_youtube_audio_async-152"><span class="linenos">152</span></a>        <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-153"><a href="#transcribe_youtube_audio_async-153"><span class="linenos">153</span></a>        <span class="n">chunk_duration</span><span class="o">=</span><span class="n">chunk_duration_s</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-154"><a href="#transcribe_youtube_audio_async-154"><span class="linenos">154</span></a>        <span class="n">overlap</span><span class="o">=</span><span class="n">overlap_s</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-155"><a href="#transcribe_youtube_audio_async-155"><span class="linenos">155</span></a>        <span class="n">progress_rptr</span><span class="o">=</span><span class="n">progress_rptr</span><span class="p">,</span>
+</span><span id="transcribe_youtube_audio_async-156"><a href="#transcribe_youtube_audio_async-156"><span class="linenos">156</span></a>    <span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-157"><a href="#transcribe_youtube_audio_async-157"><span class="linenos">157</span></a>    <span class="c1"># text = &quot;\n&quot;.join(chunk.text for chunk in chunks if chunk.text)</span>
+</span><span id="transcribe_youtube_audio_async-158"><a href="#transcribe_youtube_audio_async-158"><span class="linenos">158</span></a>
+</span><span id="transcribe_youtube_audio_async-159"><a href="#transcribe_youtube_audio_async-159"><span class="linenos">159</span></a>    <span class="k">if</span> <span class="n">progress_rptr</span><span class="p">:</span>
+</span><span id="transcribe_youtube_audio_async-160"><a href="#transcribe_youtube_audio_async-160"><span class="linenos">160</span></a>        <span class="k">await</span> <span class="n">progress_rptr</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="s2">&quot;Transcription complete&quot;</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-161"><a href="#transcribe_youtube_audio_async-161"><span class="linenos">161</span></a>
+</span><span id="transcribe_youtube_audio_async-162"><a href="#transcribe_youtube_audio_async-162"><span class="linenos">162</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">keep_files</span><span class="p">:</span>
+</span><span id="transcribe_youtube_audio_async-163"><a href="#transcribe_youtube_audio_async-163"><span class="linenos">163</span></a>        <span class="n">source</span><span class="o">.</span><span class="n">source_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-164"><a href="#transcribe_youtube_audio_async-164"><span class="linenos">164</span></a>        <span class="n">converted</span><span class="o">.</span><span class="n">wav_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="transcribe_youtube_audio_async-165"><a href="#transcribe_youtube_audio_async-165"><span class="linenos">165</span></a>
+</span><span id="transcribe_youtube_audio_async-166"><a href="#transcribe_youtube_audio_async-166"><span class="linenos">166</span></a>    <span class="k">return</span> <span class="n">snippets</span>
 </span></pre></div>
 
 
@@ -555,7 +584,7 @@ Args:
     progress_rptr: Optional progress reporter callback.
     keep_files: Whether to keep the downloaded and converted audio files.
 Returns:
-    An AudioTranscript object containing the video ID, title, and transcription snippets.</p>
+    A list of Snippet objects containing the transcription snippets.</p>
 </div>
 
 
